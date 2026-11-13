@@ -175,13 +175,13 @@
 
     let creatorKey = localStorage.getItem('offhand_creator_key') || "DARKER";
     let isAdmin = false;
-    const DB = "https://offhand-demonlist-default-rtdb.firebaseio.com/data.json";
+    const DB = "https://" + "offhand-demonlist-default-rtdb" + "://";
     let levels = defaultData;
     let pending = [];
 
     async function loadCloud() {
         try {
-            const res = await fetch(DB);
+            const res = await fetch(DB); if (!res.ok) throw new Error("HTTP " + res.status);
             const data = await res.json();
             if (data && data.levels) {
                 levels = data.levels;
@@ -191,7 +191,7 @@
             }
             render(false);
         } catch (e) {
-            document.getElementById('sync-status').innerText = "🔴 Ошибка связи с базой";
+            document.getElementById('sync-status').innerText = "🔴 Ошибка: " + e.message;
         }
     }
 
