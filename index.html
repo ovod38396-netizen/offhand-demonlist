@@ -106,7 +106,7 @@
 <div class="container">
     <header>
         <h1>🖐️ GD Offhand Demonlist</h1>
-        <p>Официальный топ уровней, пройденных неведущей рукой</p>
+        <p id="sync-status" style="color:#22c55e; font-weight:bold;">🟢 Онлайн • База подключена</p>
     </header>
 
     <div class="tabs">
@@ -114,9 +114,10 @@
         <button onclick="switchTab('players', this)">Топ игроков</button>
         <button onclick="switchTab('rules', this)">📜 Правила</button>
         <button class="btn-mod" onclick="openModTab(this)">🛡️ Модерация (<span id="mod-count">0</span>)</button>
-        <button class="btn-creator" onclick="creatorAddLevel()">👑 Создатель</button>
         <button class="btn-player" onclick="playerSubmitRecord()">🎮 Подать рекорд</button>
-        <button onclick="changeCreatorKey()">🔑 Ключ</button>
+        <button id="admin-btn" class="btn-creator" onclick="toggleAdmin()">🔓 Админ</button>
+        <button id="add-lvl-btn" class="btn-creator hidden" onclick="creatorAddLevel()">👑 + Уровень</button>
+        <button id="key-btn" class="hidden" onclick="changeCreatorKey()">🔑 Ключ</button>
         <button onclick="exportData()">💾 База</button>
     </div>
 
@@ -173,8 +174,33 @@
     ];
 
     let creatorKey = localStorage.getItem('offhand_creator_key') || "DARKER";
-    let levels = JSON.parse(localStorage.getItem('offhand_web_list')) || defaultData;
-    let pending = JSON.parse(localStorage.getItem('offhand_web_pending')) || [];
+    let isAdmin = false;
+    const DB = "https://offhand-demonlist-default-rtdb.firebaseio.com/data.json";
+    let levels = defaultData;
+    let pending = [];
+
+    async function loadCloud() {
+        try {
+            const res = await fetch(DB);
+            const data = await res.json();
+            if (data && data.levels) {
+                levels = data.levels;
+                pending = data.pending || [];
+            } else {
+                await saveCloud();
+            }
+            render(false);
+        } catch (e) {
+            document.getElementById('sync-status').innerText = "🔴 Ошибка связи с базой";
+        }
+    }
+
+    async function saveCloud() {
+        await fetch(DB, {
+            method: "PUT",
+            body: JSON.stringify({ levels, pending })
+        });
+    }
 
     function basePoints(index) {
         return Math.max(10, Math.round(150 / (index + 1)));
@@ -187,6 +213,24 @@
         const ratio = (pct - listPct) / (100 - listPct || 1);
         return Math.round(maxPts * (0.25 + 0.35 * ratio));
     }
+
+    function toggleAdmin() {
+        if (!isAdmin) {
+            if (prompt("🔓 Введи ключ админа:") !== creatorKey) return alert("🚫 Неверный ключ!");
+            isAdmin = true;
+            document.getElementById('admin-btn').innerText = "🔒 Выйти (Админ)";
+            document.getElementById('add-lvl-btn').classList.remove('hidden');
+            document.getElementById('key-btn').classList.remove('hidden');
+        } else {
+            isAdmin = false;
+            document.getElementById('admin-btn').innerText = "🔓 Админ";
+            document.getElementById('add-lvl-btn').classList.add('hidden');
+            document.getElementById('key-btn').classList.add('hidden');
+        }
+        render(false);
+    }
+
+    setInterval(() => { loadCloud(); }, 10000);
 
     function changeCreatorKey() {
         const oldKey = prompt("Введи текущий ключ:");
@@ -261,7 +305,7 @@
     function removeRecord(lIdx, rIdx) { levels[lIdx].records.splice(rIdx, 1); render(); }
     function removeLevel(idx) { levels.splice(idx, 1); render(); }
 
-    function render() {
+    function render(sync = true) {
         document.getElementById('mod-count').innerText = pending.length;
         const list = document.getElementById('levels-list');
         list.innerHTML = '';
@@ -271,14 +315,13 @@
                 const earned = calcRecordPoints(idx, r.pct, lvl.listPct);
                 const vidBtn = (r.video && r.video.startsWith('http')) ? `<a class="vid-link" href="${r.video}" target="_blank">[▶ Видео]</a>` : '';
                 const badge = r.isCreator ? `<span class="verif-creator">👑 Верифер</span>` : `<span class="verif-ok">✓ Проверено</span>`;
-                return `<span class="rec-tag ${r.pct === 100 ? 'full' : 'partial'}"><strong>${r.player} [${r.hand || 'Левая'}]</strong>: ${r.pct}% (${earned} pts) ${badge} ${vidBtn} <span onclick="removeRecord(${idx}, ${rIdx})" style="cursor:pointer; color:#ef4444;">×</span></span>`;
+                return `<span class="rec-tag ${r.pct === 100 ? 'full' : 'partial'}"><strong>${r.player} [${r.hand || 'Левая'}]</strong>: ${r.pct}% (${earned} pts) ${badge} ${vidBtn} ${isAdmin ? `<span onclick="removeRecord(${idx}, ${rIdx})" style="cursor:pointer; color:#ef4444;">×</span>` : ''}</span>`;
             }).join('');
 
-            list.innerHTML += `<div class="card"><div class="card-top"><div style="display:flex; align-items:center;"><span class="rank">#${idx + 1}</span><div class="info"><h3>${lvl.name} <span style="font-size:13px; color:#71717a;">by ${lvl.author}</span></h3><p>Рекордов: ${lvl.records.length}</p></div></div><div style="display:flex; align-items:center; gap:6px;"><span class="badge list-pct">List %: ${lvl.listPct}%</span><span class="badge points">${pts} pts</span><button class="move-btn" onclick="moveLevel(${idx}, -1)">↑</button><button class="move-btn" onclick="moveLevel(${idx}, 1)">↓</button><button onclick="removeLevel(${idx})" style="background:#ef4444; padding:5px 9px;">✕</button></div></div><div class="records-box">${recsHtml || '<span style="font-size:12px; color:#71717a;">Пока нет рекордов</span>'}</div></div>`;
+            list.innerHTML += `<div class="card"><div class="card-top"><div style="display:flex; align-items:center;"><span class="rank">#${idx + 1}</span><div class="info"><h3>${lvl.name} <span style="font-size:13px; color:#71717a;">by ${lvl.author}</span></h3><p>Рекордов: ${lvl.records.length}</p></div></div><div style="display:flex; align-items:center; gap:6px;"><span class="badge list-pct">List %: ${lvl.listPct}%</span><span class="badge points">${pts} pts</span>${isAdmin ? `<button class="move-btn" onclick="moveLevel(${idx}, -1)">↑</button><button class="move-btn" onclick="moveLevel(${idx}, 1)">↓</button><button onclick="removeLevel(${idx})" style="background:#ef4444; padding:5px 9px;">✕</button>` : ''}</div></div><div class="records-box">${recsHtml || '<span style="font-size:12px; color:#71717a;">Пока нет рекордов</span>'}</div></div>`;
         });
         renderMod(); renderPlayers();
-        localStorage.setItem('offhand_web_list', JSON.stringify(levels));
-        localStorage.setItem('offhand_web_pending', JSON.stringify(pending));
+        if (sync !== false) saveCloud();
     }
 
     function renderMod() {
@@ -310,7 +353,8 @@
         a.href = URL.createObjectURL(new Blob([JSON.stringify({ levels, pending }, null, 2)], { type: 'application/json' }));
         a.download = 'offhand-demonlist.json'; a.click();
     }
-    render();
+    render(false);
+    loadCloud();
 </script>
 </body>
 </html>
