@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GD Offhand Demonlist</title>
+    <style>
+        body {
+            background-color: #121216;
+            color: #e4e4e7;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container { width: 100%; max-width: 900px; }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #27272a;
+            padding-bottom: 15px;
+        }
+        h1 { color: #a855f7; margin: 0; font-size: 28px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        button {
+            background-color: #27272a;
+            color: #fff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover, button.active { background-color: #a855f7; }
+        .btn-creator { background: #7e22ce; }
+        .btn-player { background: #16a34a; }
+        .btn-mod { background: #b45309; }
+        .card {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 14px;
+        }
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .rank { font-size: 22px; font-weight: bold; color: #a855f7; margin-right: 15px; }
+        .info h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .info p { margin: 0; font-size: 13px; color: #a1a1aa; }
+        .badge {
+            background-color: #27272a;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .points { color: #38bdf8; }
+        .list-pct { color: #facc15; border: 1px solid #854d0e; }
+        .records-box {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #27272a;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .rec-tag {
+            background: #27272a;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .rec-tag.full { border-left: 3px solid #22c55e; }
+        .rec-tag.partial { border-left: 3px solid #facc15; }
+        .verif-creator { color: #c084fc; font-size: 11px; font-weight: bold; }
+        .verif-ok { color: #22c55e; font-size: 11px; font-weight: bold; }
+        .vid-link { color: #a855f7; text-decoration: none; font-weight: bold; }
+        .move-btn { padding: 5px 9px; background: #3f3f46; font-size: 13px; }
+        .rule-item { margin-bottom: 14px; line-height: 1.5; }
+        .rule-item strong { color: #c084fc; }
+        .key-zone {
+            display: inline-block;
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-family: monospace;
+            color: #38bdf8;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🖐️ GD Offhand Demonlist</h1>
+        <p>Официальный топ уровней, пройденных неведущей рукой</p>
+    </header>
+
+    <div class="tabs">
+        <button class="active" onclick="switchTab('levels', this)">Список демонов</button>
+        <button onclick="switchTab('players', this)">Топ игроков</button>
+        <button onclick="switchTab('rules', this)">📜 Правила</button>
+        <button class="btn-mod" onclick="openModTab(this)">🛡️ Модерация (<span id="mod-count">0</span>)</button>
+        <button class="btn-creator" onclick="creatorAddLevel()">👑 Создатель</button>
+        <button class="btn-player" onclick="playerSubmitRecord()">🎮 Подать рекорд</button>
+        <button onclick="changeCreatorKey()">🔑 Ключ</button>
+        <button onclick="exportData()">💾 База</button>
+    </div>
+
+    <div id="levels-tab">
+        <div id="levels-list"></div>
+    </div>
+
+    <div id="players-tab" class="hidden">
+        <div id="players-list"></div>
+    </div>
+
+    <div id="mod-tab" class="hidden">
+        <div id="mod-list"></div>
+    </div>
+
+    <div id="rules-tab" class="hidden">
+        <div class="card">
+            <h2 style="margin-top:0; color:#a855f7;">📜 Официальные правила Offhand Demonlist</h2>
+            <div class="rule-item">
+                <strong>1. Строгая привязка руки и зоны:</strong><br>
+                • <strong>Запрещено перекрещивать руки:</strong> Нажимать левую половину клавиатуры можно <strong>ТОЛЬКО левой рукой</strong>, а правую — <strong>ТОЛЬКО правой</strong>.<br>
+                • <strong>Правши:</strong> <span class="key-zone">Q W E R T</span>, <span class="key-zone">A S D F G</span>, <span class="key-zone">Z X C V B</span>, левый <span class="key-zone">Shift / Ctrl / Alt</span>.<br>
+                • <strong>Левши:</strong> <span class="key-zone">Y U I O P</span>, <span class="key-zone">H J K L</span>, <span class="key-zone">N M</span>, <span class="key-zone">Enter</span>, правый <span class="key-zone">Shift / Ctrl</span>, <span class="key-zone">Стрелки</span>, <span class="key-zone">Numpad</span>.
+            </div>
+            <div class="rule-item">
+                <strong>2. Обязательный хэндкам (Handcam):</strong><br>
+                На видео должно быть четко видно обе руки и всю клавиатуру, чтобы модератор видел, что ведущая рука не касается кнопок.
+            </div>
+            <div class="rule-item">
+                <strong>3. Чистый геймплей и клики:</strong><br>
+                На записи должны быть слышны клики. Запрещены макросы, боты и читы (кроме FPS Bypass 60–360 FPS).
+            </div>
+            <div class="rule-item">
+                <strong>4. Лист-проценты (List %):</strong><br>
+                Очки начисляются за 100% либо за достижение минимального порога <strong>List %</strong>.
+            </div>
+            <div class="rule-item">
+                <strong>5. Случайное нажатие ведущей рукой:</strong><br>
+                При случайном нажатии клавиши ведущей рукой необходимо <strong>сразу ресетнуть попытку</strong>.
+            </div>
+            <div class="rule-item">
+                <strong>6. Подтверждение ведущей руки:</strong><br>
+                За каждым ником закрепляется только одна рука. Модератор может запросить видео основного геймплея для проверки.
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const defaultData = [
+        { name: "Fairydust", author: "SuperPizzaLuigi", listPct: 50, records: [{ player: "DarkerGd", pct: 100, hand: "Левая", video: "https://youtu.be", isCreator: true }] },
+        { name: "Nine Circles", author: "Zobros", listPct: 55, records: [{ player: "DarkerGd", pct: 100, hand: "Левая", isCreator: true }] },
+        { name: "Jawbreaker", author: "ZenthicAlpha", listPct: 60, records: [] },
+        { name: "B", author: "Motleyorc", listPct: 70, records: [] }
+    ];
+
+    let creatorKey = localStorage.getItem('offhand_creator_key') || "DARKER";
+    let levels = JSON.parse(localStorage.getItem('offhand_web_list')) || defaultData;
+    let pending = JSON.parse(localStorage.getItem('offhand_web_pending')) || [];
+
+    function basePoints(index) {
+        return Math.max(10, Math.round(150 / (index + 1)));
+    }
+
+    function calcRecordPoints(index, pct, listPct) {
+        const maxPts = basePoints(index);
+        if (pct >= 100) return maxPts;
+        if (pct < listPct) return 0;
+        const ratio = (pct - listPct) / (100 - listPct || 1);
+        return Math.round(maxPts * (0.25 + 0.35 * ratio));
+    }
+
+    function changeCreatorKey() {
+        const oldKey = prompt("Введи текущий ключ:");
+        if (oldKey !== creatorKey) return alert("❌ Неверный ключ!");
+        const newKey = prompt("Введи новый ключ:");
+        if (newKey && newKey.trim()) {
+            creatorKey = newKey.trim();
+            localStorage.setItem('offhand_creator_key', creatorKey);
+            alert("✅ Новый ключ сохранен!");
+        }
+    }
+
+    function creatorAddLevel() {
+        if (prompt("👑 Введи ключ создателя:") !== creatorKey) return alert("🚫 Неверный ключ!");
+        const name = prompt("1/5. Название уровня:");
+        if (!name || !name.trim()) return;
+        const author = prompt("2/5. Автор уровня:", "Unknown") || "Unknown";
+        const listPct = Math.min(100, Math.max(1, parseInt(prompt("3/5. Порог Лист %:", "55"), 10) || 60));
+        const victor = prompt("4/5. Твой ник:", "DarkerGd") || "DarkerGd";
+        const pct = Math.min(100, Math.max(1, parseInt(prompt("5/5. Твой процент:", "100"), 10) || 100));
+        const video = prompt("Ссылка на видео (необязательно):", "") || "";
+
+        const records = pct >= listPct ? [{ player: victor.trim(), pct, hand: "Левая", video: video.trim(), isCreator: true }] : [];
+        levels.unshift({ name: name.trim(), author: author.trim(), listPct, records });
+        render();
+    }
+
+    function playerSubmitRecord() {
+        if (levels.length === 0) return;
+        const listText = levels.map((l, i) => `${i + 1}. ${l.name} (от ${l.listPct}%)`).join("\n");
+        const idx = parseInt(prompt(`Выбери номер уровня:\n\n${listText}`), 10) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= levels.length) return alert("❌ Неверный номер!");
+
+        const lvl = levels[idx];
+        const player = prompt(`Уровень: ${lvl.name}\n1/5. Твой никнейм:`);
+        if (!player || !player.trim()) return;
+        const hand = prompt("2/5. Какой рукой играл? (Левая / Правая):", "Левая") || "Левая";
+        const pct = parseInt(prompt(`3/5. Твой процент (от ${lvl.listPct}%):`), 10);
+        if (isNaN(pct) || pct < lvl.listPct || pct > 100) return alert(`❌ От ${lvl.listPct}% до 100%!`);
+
+        const video = prompt("4/5. Ссылка на видео с хэндкамом (YouTube/Twitch/Диск):", "https://youtu.be");
+        const validDomains = ['youtube.com', 'youtu.be', 'twitch.tv', '://google.com', 'disk.yandex'];
+        if (!video || !validDomains.some(d => video.toLowerCase().includes(d)) || video.trim().length < 28) {
+            return alert("🚫 Нужна полная ссылка на видеоролик!");
+        }
+        if (!confirm("5/5. Подтверждаешь соблюдение всех правил (хэндкам, своя половина клавиш, без мисскликов ведущей)?")) return;
+
+        pending.push({ levelName: lvl.name, player: player.trim(), hand: hand.trim(), pct, video: video.trim() });
+        alert("📨 Заявка отправлена модератору!");
+        render();
+    }
+
+    function openModTab(btn) {
+        if (prompt("🛡️ Введи ключ модератора:") !== creatorKey) return alert("🚫 Неверный ключ!");
+        switchTab('mod', btn);
+    }
+
+    function approvePending(pIdx) {
+        const item = pending[pIdx];
+        const lvl = levels.find(l => l.name.toLowerCase() === item.levelName.toLowerCase());
+        if (lvl) {
+            const ex = lvl.records.find(r => r.player.toLowerCase() === item.player.toLowerCase());
+            if (ex) { ex.pct = Math.max(ex.pct, item.pct); ex.video = item.video; ex.hand = item.hand; ex.isCreator = false; }
+            else { lvl.records.push({ player: item.player, pct: item.pct, video: item.video, hand: item.hand, isCreator: false }); }
+        }
+        pending.splice(pIdx, 1);
+        render();
+    }
+
+    function rejectPending(pIdx) { pending.splice(pIdx, 1); render(); }
+    function moveLevel(idx, dir) { const t = idx + dir; if (t >= 0 && t < levels.length) { [levels[idx], levels[t]] = [levels[t], levels[idx]]; render(); } }
+    function removeRecord(lIdx, rIdx) { levels[lIdx].records.splice(rIdx, 1); render(); }
+    function removeLevel(idx) { levels.splice(idx, 1); render(); }
+
+    function render() {
+        document.getElementById('mod-count').innerText = pending.length;
+        const list = document.getElementById('levels-list');
+        list.innerHTML = '';
+        levels.forEach((lvl, idx) => {
+            const pts = basePoints(idx);
+            const recsHtml = lvl.records.sort((a, b) => b.pct - a.pct).map((r, rIdx) => {
+                const earned = calcRecordPoints(idx, r.pct, lvl.listPct);
+                const vidBtn = (r.video && r.video.startsWith('http')) ? `<a class="vid-link" href="${r.video}" target="_blank">[▶ Видео]</a>` : '';
+                const badge = r.isCreator ? `<span class="verif-creator">👑 Верифер</span>` : `<span class="verif-ok">✓ Проверено</span>`;
+                return `<span class="rec-tag ${r.pct === 100 ? 'full' : 'partial'}"><strong>${r.player} [${r.hand || 'Левая'}]</strong>: ${r.pct}% (${earned} pts) ${badge} ${vidBtn} <span onclick="removeRecord(${idx}, ${rIdx})" style="cursor:pointer; color:#ef4444;">×</span></span>`;
+            }).join('');
+
+            list.innerHTML += `<div class="card"><div class="card-top"><div style="display:flex; align-items:center;"><span class="rank">#${idx + 1}</span><div class="info"><h3>${lvl.name} <span style="font-size:13px; color:#71717a;">by ${lvl.author}</span></h3><p>Рекордов: ${lvl.records.length}</p></div></div><div style="display:flex; align-items:center; gap:6px;"><span class="badge list-pct">List %: ${lvl.listPct}%</span><span class="badge points">${pts} pts</span><button class="move-btn" onclick="moveLevel(${idx}, -1)">↑</button><button class="move-btn" onclick="moveLevel(${idx}, 1)">↓</button><button onclick="removeLevel(${idx})" style="background:#ef4444; padding:5px 9px;">✕</button></div></div><div class="records-box">${recsHtml || '<span style="font-size:12px; color:#71717a;">Пока нет рекордов</span>'}</div></div>`;
+        });
+        renderMod(); renderPlayers();
+        localStorage.setItem('offhand_web_list', JSON.stringify(levels));
+        localStorage.setItem('offhand_web_pending', JSON.stringify(pending));
+    }
+
+    function renderMod() {
+        const m = document.getElementById('mod-list');
+        m.innerHTML = pending.length ? '' : '<div class="card"><p style="margin:0; color:#a1a1aa;">Очередь проверки пуста.</p></div>';
+        pending.forEach((it, i) => {
+            m.innerHTML += `<div class="card"><div class="card-top"><div class="info"><h3>${it.player} (${it.pct}% на ${it.levelName})</h3><p>Рука: ${it.hand} • <a class="vid-link" href="${it.video}" target="_blank">${it.video}</a></p></div><div style="display:flex; gap:8px;"><button style="background:#16a34a;" onclick="approvePending(${i})">✓ Одобрить</button><button style="background:#ef4444;" onclick="rejectPending(${i})">✕ Отклонить</button></div></div></div>`;
+        });
+    }
+
+    function renderPlayers() {
+        const sc = {}, names = {};
+        levels.forEach((l, i) => l.records.forEach(r => { const k = r.player.toLowerCase(); names[k] = r.player; sc[k] = (sc[k] || 0) + calcRecordPoints(i, r.pct, l.listPct); }));
+        const pList = document.getElementById('players-list');
+        pList.innerHTML = '';
+        Object.entries(sc).sort((a, b) => b[1] - a[1]).forEach(([k, pts], i) => {
+            pList.innerHTML += `<div class="card"><div class="card-top"><div style="display:flex; align-items:center;"><span class="rank">#${i + 1}</span><div class="info"><h3>${names[k]}</h3></div></div><span class="badge points">${pts} pts</span></div></div>`;
+        });
+    }
+
+    function switchTab(tab, btn) {
+        document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        ['levels', 'players', 'rules', 'mod'].forEach(t => document.getElementById(t + '-tab').classList.toggle('hidden', t !== tab));
+    }
+
+    function exportData() {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify({ levels, pending }, null, 2)], { type: 'application/json' }));
+        a.download = 'offhand-demonlist.json'; a.click();
+    }
+    render();
+</script>
+</body>
+</html>
