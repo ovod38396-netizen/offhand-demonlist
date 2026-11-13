@@ -292,7 +292,7 @@
         const item = pending[pIdx];
         const lvl = levels.find(l => l.name.toLowerCase() === item.levelName.toLowerCase());
         if (lvl) {
-            const ex = lvl.records.find(r => r.player.toLowerCase() === item.player.toLowerCase());
+            if (!lvl.records) lvl.records = []; const ex = lvl.records.find(r => r.player.toLowerCase() === item.player.toLowerCase());
             if (ex) { ex.pct = Math.max(ex.pct, item.pct); ex.video = item.video; ex.hand = item.hand; ex.isCreator = false; }
             else { lvl.records.push({ player: item.player, pct: item.pct, video: item.video, hand: item.hand, isCreator: false }); }
         }
@@ -311,14 +311,14 @@
         list.innerHTML = '';
         levels.forEach((lvl, idx) => {
             const pts = basePoints(idx);
-            const recsHtml = lvl.records.sort((a, b) => b.pct - a.pct).map((r, rIdx) => {
+            const recsHtml = (lvl.records || []).sort((a, b) => b.pct - a.pct).map((r, rIdx) => {
                 const earned = calcRecordPoints(idx, r.pct, lvl.listPct);
                 const vidBtn = (r.video && r.video.startsWith('http')) ? `<a class="vid-link" href="${r.video}" target="_blank">[▶ Видео]</a>` : '';
                 const badge = r.isCreator ? `<span class="verif-creator">👑 Верифер</span>` : `<span class="verif-ok">✓ Проверено</span>`;
                 return `<span class="rec-tag ${r.pct === 100 ? 'full' : 'partial'}"><strong>${r.player} [${r.hand || 'Левая'}]</strong>: ${r.pct}% (${earned} pts) ${badge} ${vidBtn} ${isAdmin ? `<span onclick="removeRecord(${idx}, ${rIdx})" style="cursor:pointer; color:#ef4444;">×</span>` : ''}</span>`;
             }).join('');
 
-            list.innerHTML += `<div class="card"><div class="card-top"><div style="display:flex; align-items:center;"><span class="rank">#${idx + 1}</span><div class="info"><h3>${lvl.name} <span style="font-size:13px; color:#71717a;">by ${lvl.author}</span></h3><p>Рекордов: ${lvl.records.length}</p></div></div><div style="display:flex; align-items:center; gap:6px;"><span class="badge list-pct">List %: ${lvl.listPct}%</span><span class="badge points">${pts} pts</span>${isAdmin ? `<button class="move-btn" onclick="moveLevel(${idx}, -1)">↑</button><button class="move-btn" onclick="moveLevel(${idx}, 1)">↓</button><button onclick="removeLevel(${idx})" style="background:#ef4444; padding:5px 9px;">✕</button>` : ''}</div></div><div class="records-box">${recsHtml || '<span style="font-size:12px; color:#71717a;">Пока нет рекордов</span>'}</div></div>`;
+            list.innerHTML += `<div class="card"><div class="card-top"><div style="display:flex; align-items:center;"><span class="rank">#${idx + 1}</span><div class="info"><h3>${lvl.name} <span style="font-size:13px; color:#71717a;">by ${lvl.author}</span></h3><p>Рекордов: ${(lvl.records || []).length}</p></div></div><div style="display:flex; align-items:center; gap:6px;"><span class="badge list-pct">List %: ${lvl.listPct}%</span><span class="badge points">${pts} pts</span>${isAdmin ? `<button class="move-btn" onclick="moveLevel(${idx}, -1)">↑</button><button class="move-btn" onclick="moveLevel(${idx}, 1)">↓</button><button onclick="removeLevel(${idx})" style="background:#ef4444; padding:5px 9px;">✕</button>` : ''}</div></div><div class="records-box">${recsHtml || '<span style="font-size:12px; color:#71717a;">Пока нет рекордов</span>'}</div></div>`;
         });
         renderMod(); renderPlayers();
         if (sync !== false) saveCloud();
@@ -334,7 +334,7 @@
 
     function renderPlayers() {
         const sc = {}, names = {};
-        levels.forEach((l, i) => l.records.forEach(r => { const k = r.player.toLowerCase(); names[k] = r.player; sc[k] = (sc[k] || 0) + calcRecordPoints(i, r.pct, l.listPct); }));
+        levels.forEach((l, i) => (l.records || []).forEach(r => { const k = r.player.toLowerCase(); names[k] = r.player; sc[k] = (sc[k] || 0) + calcRecordPoints(i, r.pct, l.listPct); }));
         const pList = document.getElementById('players-list');
         pList.innerHTML = '';
         Object.entries(sc).sort((a, b) => b[1] - a[1]).forEach(([k, pts], i) => {
