@@ -112,7 +112,7 @@
         .rule-item { margin-bottom: 16px; line-height: 1.6; font-size: 14px; }
         .rule-item strong { color: #c084fc; }
         .key-zone { display: inline-block; background: #1e1e24; border: 1px solid #3f3f46; padding: 2px 8px; border-radius: 6px; font-family: monospace; color: #38bdf8; }
-        #modal-bg { display: flex; } .hidden { display: none; }
+        #modal-bg { display: flex; } #modal-bg { display: flex; } .hidden { display: none; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } .card { animation: fadeUp 0.35s ease; } .card.top-1 { background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(24,24,30,0.85)); box-shadow: 0 8px 30px rgba(251,191,36,0.12); } .filter-btn.f-active { background: linear-gradient(135deg, #9333ea, #3b82f6); color: #fff; box-shadow: 0 0 12px rgba(168,85,247,0.5); } .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; } .stat-card { background: linear-gradient(145deg, rgba(39,39,46,0.7), rgba(24,24,30,0.9)); border: 1px solid rgba(168,85,247,0.3); border-radius: 14px; padding: 18px; text-align: center; } .stat-num { font-size: 28px; font-weight: 900; background: linear-gradient(90deg, #c084fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; } </style>
 </head>
 <body>
@@ -336,5 +336,5 @@
     render(false);
     loadCloud();
 </script>
-<div id="modal-bg" class="hidden" onclick="if(event.target===this)this.classList.add('hidden')" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px;"><div id="modal-box" class="card" style="max-width:560px;width:100%;max-height:85vh;overflow-y:auto;border:1px solid #a855f7;"></div></div></body>
+<div id="modal-bg" class="hidden" onclick="if(event.target===this)this.classList.add('hidden')" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:999;padding:16px;"><div id="modal-box" class="card" style="max-width:560px;width:100%;max-height:85vh;overflow-y:auto;border:1px solid #a855f7;"></div></div></body>
 </html>
