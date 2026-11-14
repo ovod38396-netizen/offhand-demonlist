@@ -90,11 +90,17 @@ window.GD_PLAYER_GEO = JSON.parse(localStorage.getItem("gd_player_geo") || "{"da
 if (!window.GD_PLAYER_GEO["darkergd"]) window.GD_PLAYER_GEO["darkergd"] = { c: "RU", r: "Новосибирская область" };
 </script>
 
+
+<style>
+.tabs { display: flex !important; flex-wrap: wrap !important; gap: 7px !important; align-items: center !important; background: rgba(15,23,42,0.75); padding: 12px; border-radius: 14px; border: 1px solid rgba(124,58,237,0.28); }
+.tabs button { padding: 8px 12px !important; font-size: 12.5px !important; border-radius: 9px !important; white-space: nowrap; }
+</style>
+
 </head>
 <body>
 <div class="container">
     <header>
-        <svg viewBox="0 0 800 84" style="width:100%;max-width:720px;height:auto;margin:0 auto 10px;display:block;" xmlns="http://w3.org"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#a855f7"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs><rect x="2" y="2" width="796" height="80" rx="16" fill="rgba(18,18,24,0.85)" stroke="url(#g1)" stroke-width="2.5"/><text x="400" y="39" text-anchor="middle" fill="url(#g1)" font-family="Inter,sans-serif" font-weight="900" font-size="24" letter-spacing="2">GD OFFHAND DEMONLIST</text><text x="400" y="63" text-anchor="middle" fill="#a1a1aa" font-family="Inter,sans-serif" font-weight="600" font-size="13">OFFICIAL NON-DOMINANT HAND LEADERBOARD • VERIFIED RECORDS</text></svg>
+        
         <h1>🖐️ GD Offhand Demonlist</h1>
         <p class="subtitle">Официальный рейтинг уровней Geometry Dash, пройденных неведущей рукой</p>
         <p id="sync-status" style="color:#22c55e; font-weight:bold;">🟢 Онлайн • База подключена</p>
@@ -808,65 +814,7 @@ window.setGdLang = function(l) {
 
 
 
-<script>
-window.applyGdLang = function() {
-  const dict = window.GD_DICT || {};
-  const t = dict[window.GD_LANG] || dict.ru;
-  if (!t) return;
-  const subEl = document.querySelector("header p, .container > p");
-  if (subEl && (subEl.innerText.includes("Geometry Dash") || subEl.innerText.includes("рейтинг"))) subEl.innerText = t.sub;
-  const inp = document.getElementById("search-input") || document.querySelector("input[placeholder]");
-  if (inp && (inp.placeholder.includes("Поиск") || inp.placeholder.includes("Search") || inp.placeholder.includes("Пошук") || inp.placeholder.includes("Buscar"))) inp.placeholder = t.search;
-  const rules = [
-    { rx: /Список демонов|Demon List|Список демонів|Lista de Demons/, val: "🏆 " + t.demons },
-    { rx: /Топ игроков|Top Players|Топ гравців|Top Jugadores/, val: "👑 " + t.players },
-    { rx: /Статистика|Statistics|Статистика|Estadísticas/, val: "📊 " + t.stats },
-    { rx: /Правила|Rules|Правила|Reglas/, val: "📜 " + t.rules },
-    { rx: /Подать рекорд|Submit Record|Подати рекорд|Enviar Récord/, val: "🎮 " + t.submit },
-    { rx: /Предложить уровень|Suggest Level|Запропонувати рівень|Sugerir Nivel/, val: "💡 " + t.suggest },
-    { rx: /Карта и Регионы|Map & Regions|Карта та Регіони|Mapa y Regiones/, val: "🌍 " + t.geo },
-    { rx: /Левая рука|Left Hand|Ліва рука|Mano Izquierda/, val: "🖐️ " + t.left },
-    { rx: /Правая рука|Right Hand|Права рука|Mano Derecha/, val: "🤚 " + t.right },
-    { rx: /Без рекордов|No Records|Без рекордів|Sin Récords/, val: "🆕 " + t.norec },
-    { rx: /Что пройти\?|What to play\?|Що пройти\?|¿Qué jugar\?/, val: "🎲 " + t.random },
-    { rx: /Сохранить регион|Save Region|Зберегти регіон|Guardar Región/, val: "📍 " + t.saveGeo }
-  ];
-  document.querySelectorAll("button").forEach(btn => {
-    const txt = (btn.innerText || "").trim();
-    rules.forEach(item => { if (item.rx.test(txt)) btn.innerText = item.val; });
-  });
-  document.querySelectorAll(".lang-pill").forEach(pill => {
-    const active = pill.dataset.lang === window.GD_LANG;
-    pill.style.background = active ? "#7c3aed" : "#1e293b";
-    pill.style.color = active ? "#fff" : "#cbd5e1";
-  });
-};
-window.setGdLang = function(l) {
-  window.GD_LANG = l;
-  localStorage.setItem("gd_lang", l);
-  window.applyGdLang();
-};
-(function initLangBar() {
-  const old = document.getElementById("gd-lang-switcher");
-  if (old) old.remove();
-  const bar = document.createElement("div");
-  bar.id = "gd-lang-switcher";
-  bar.style.cssText = "position:fixed;top:12px;right:14px;z-index:2147483647;pointer-events:auto;display:flex;gap:5px;background:rgba(15,23,42,0.96);padding:5px 7px;border-radius:999px;border:1px solid #7c3aed;box-shadow:0 4px 18px rgba(0,0,0,0.75);";
-  const langs = { ru: "🇷🇺 RU", en: "🇬🇧 EN", uk: "🇺🇦 UK", es: "🇪🇸 ES" };
-  Object.keys(langs).forEach(code => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "lang-pill";
-    btn.dataset.lang = code;
-    btn.innerText = langs[code];
-    btn.style.cssText = "border:none;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;pointer-events:auto;";
-    btn.addEventListener("click", function(e) { e.stopPropagation(); window.setGdLang(code); });
-    bar.appendChild(btn);
-  });
-  document.body.appendChild(bar);
-  window.applyGdLang();
-})();
-</script>
+
 <script>
 setInterval(function() {
     const u = JSON.parse(localStorage.getItem("gd_auth_user") || "null");
@@ -884,6 +832,134 @@ setInterval(function() {
         }
     }
 }, 400);
+</script>
+<script>
+window.GD_FULL_DICT = {
+  ru: {
+    sub: "Официальный рейтинг уровней Geometry Dash, пройденных неведущей рукой",
+    online: "🟢 Онлайн • База подключена",
+    demons: "Список демонов", players: "Топ игроков", stats: "Статистика", rules: "Правила",
+    mod: "Модерация", submit: "Подать рекорд", suggest: "Предложить уровень",
+    login: "Войти / Регистрация", logout: "Выйти", lvl: "Уровень", ban: "Бан-лист",
+    key: "Ключ", refresh: "Обновить", backup: "База", geo: "Карта и Регионы",
+    all: "Все", left: "Левая рука", right: "Правая рука", norec: "Без рекордов",
+    random: "Что пройти?", search: "Поиск уровня по названию или автору...",
+    saveGeo: "Сохранить регион", ticker: "🔥 Актуальные рекорды листа:",
+    noRecYet: "Пока нет рекордов — стань первым!", verifier: "Верифер", video: "Видео",
+    topBtn: "Наверх"
+  },
+  en: {
+    sub: "Official ranking of Geometry Dash levels beaten with the non-dominant hand",
+    online: "🟢 Online • Database connected",
+    demons: "Demon List", players: "Top Players", stats: "Statistics", rules: "Rules",
+    mod: "Moderation", submit: "Submit Record", suggest: "Suggest Level",
+    login: "Login / Register", logout: "Logout", lvl: "Level", ban: "Ban List",
+    key: "Key", refresh: "Refresh", backup: "Backup", geo: "Map & Regions",
+    all: "All", left: "Left Hand", right: "Right Hand", norec: "No Records",
+    random: "What to play?", search: "Search level by name or creator...",
+    saveGeo: "Save Region", ticker: "🔥 Latest List Records:",
+    noRecYet: "No records yet — be the first!", verifier: "Verifier", video: "Video",
+    topBtn: "Top"
+  },
+  uk: {
+    sub: "Офіційний рейтинг рівнів Geometry Dash, пройдених непровідною рукою",
+    online: "🟢 Онлайн • База підключена",
+    demons: "Список демонів", players: "Топ гравців", stats: "Статистика", rules: "Правила",
+    mod: "Модерація", submit: "Подати рекорд", suggest: "Запропонувати рівень",
+    login: "Увійти / Реєстрація", logout: "Вийти", lvl: "Рівень", ban: "Бан-лист",
+    key: "Ключ", refresh: "Оновити", backup: "База", geo: "Карта та Регіони",
+    all: "Усі", left: "Ліва рука", right: "Права рука", norec: "Без рекордів",
+    random: "Що пройти?", search: "Пошук рівня за назвою або автором...",
+    saveGeo: "Зберегти регіон", ticker: "🔥 Актуальні рекорди листа:",
+    noRecYet: "Поки немає рекордів — стань першим!", verifier: "Верифер", video: "Відео",
+    topBtn: "Вгору"
+  },
+  es: {
+    sub: "Ranking oficial de niveles de Geometry Dash completados con la mano no dominante",
+    online: "🟢 En línea • Base conectada",
+    demons: "Lista de Demons", players: "Top Jugadores", stats: "Estadísticas", rules: "Reglas",
+    mod: "Moderación", submit: "Enviar Récord", suggest: "Sugerir Nivel",
+    login: "Entrar / Registro", logout: "Salir", lvl: "Nivel", ban: "Baneados",
+    key: "Clave", refresh: "Actualizar", backup: "Base", geo: "Mapa y Regiones",
+    all: "Todos", left: "Mano Izquierda", right: "Mano Derecha", norec: "Sin Récords",
+    random: "¿Qué jugar?", search: "Buscar nivel por nombre o creador...",
+    saveGeo: "Guardar Región", ticker: "🔥 Últimos récords de la lista:",
+    noRecYet: "Aún no hay récords — ¡sé el primero!", verifier: "Verificador", video: "Vídeo",
+    topBtn: "Arriba"
+  }
+};
+window.applyGdLang = function() {
+  const t = window.GD_FULL_DICT[window.GD_LANG] || window.GD_FULL_DICT.ru;
+  const subEl = document.querySelector("header p, .container > p");
+  if (subEl) subEl.innerText = t.sub;
+  const st = document.getElementById("sync-status");
+  if (st) st.innerText = t.online;
+  const inp = document.getElementById("search-input") || document.querySelector("input[placeholder]");
+  if (inp) inp.placeholder = t.search;
+
+  const btnRules = [
+    { rx: /Список демонов|Demon List|Список демонів|Lista de Demons/, val: "🏆 " + t.demons },
+    { rx: /Топ игроков|Top Players|Топ гравців|Top Jugadores/, val: "👑 " + t.players },
+    { rx: /Статистика|Statistics|Статистика|Estadísticas/, val: "📊 " + t.stats },
+    { rx: /Правила|Rules|Правила|Reglas/, val: "📜 " + t.rules },
+    { rx: /Подать рекорд|Submit Record|Подати рекорд|Enviar Récord/, val: "🎮 " + t.submit },
+    { rx: /Предложить уровень|Suggest Level|Запропонувати рівень|Sugerir Nivel/, val: "💡 " + t.suggest },
+    { rx: /Карта и Регионы|Map & Regions|Карта та Регіони|Mapa y Regiones/, val: "🌍 " + t.geo },
+    { rx: /^(🏆\s*)?(Все|All|Усі|Todos)$/, val: "🏆 " + t.all },
+    { rx: /Левая рука|Left Hand|Ліва рука|Mano Izquierda/, val: "🖐️ " + t.left },
+    { rx: /Правая рука|Right Hand|Права рука|Mano Derecha/, val: "🤚 " + t.right },
+    { rx: /Без рекордов|No Records|Без рекордів|Sin Récords/, val: "🆕 " + t.norec },
+    { rx: /Что пройти\?|What to play\?|Що пройти\?|¿Qué jugar\?/, val: "🎲 " + t.random },
+    { rx: /Сохранить регион|Save Region|Зберегти регіон|Guardar Región/, val: "📍 " + t.saveGeo },
+    { rx: /^(🔓\s*)?(Выйти|Logout|Вийти|Salir)$/, val: "🔓 " + t.logout },
+    { rx: /^(➕\s*)?(Уровень|Level|Рівень|Nivel)$/, val: "➕ " + t.lvl },
+    { rx: /Бан-лист|Ban List|Бан-лист|Baneados/, val: "🚫 " + t.ban },
+    { rx: /^(🔑\s*)?(Ключ|Key|Ключ|Clave)$/, val: "🔑 " + t.key },
+    { rx: /^(🔄\s*)?(Обновить|Refresh|Оновити|Actualizar)$/, val: "🔄 " + t.refresh },
+    { rx: /^(💾\s*)?(База|Backup|База|Base)$/, val: "💾 " + t.backup },
+    { rx: /^(⬆️\s*)?(Наверх|Top|Вгору|Arriba)$/, val: "⬆️ " + t.topBtn }
+  ];
+  document.querySelectorAll("button").forEach(btn => {
+    if (btn.classList.contains("lang-pill")) return;
+    const txt = (btn.innerText || "").trim();
+    const mMod = txt.match(/(?:Модерация|Moderation|Модерація|Moderación)\s*\((\d+)\)/);
+    if (mMod) { btn.innerText = "🛡️ " + t.mod + " (" + mMod.at(1) + ")"; return; }
+    btnRules.forEach(item => { if (item.rx.test(txt)) btn.innerText = item.val; });
+  });
+  document.querySelectorAll(".verif-creator").forEach(el => { el.innerText = "👑 " + t.verifier; });
+  document.querySelectorAll(".vid-link").forEach(el => { el.innerText = "▶ " + t.video; });
+  document.querySelectorAll(".lang-pill").forEach(pill => {
+    const active = pill.dataset.lang === window.GD_LANG;
+    pill.style.background = active ? "#7c3aed" : "#1e293b";
+    pill.style.color = active ? "#fff" : "#cbd5e1";
+  });
+};
+window.setGdLang = function(l) {
+  window.GD_LANG = l;
+  localStorage.setItem("gd_lang", l);
+  window.applyGdLang();
+};
+(function initLangBar() {
+  const old = document.getElementById("gd-lang-switcher");
+  if (old) old.remove();
+  const bar = document.createElement("div");
+  bar.id = "gd-lang-switcher";
+  bar.style.cssText = "position:fixed;top:12px;right:14px;z-index:2147483647;display:flex;gap:5px;background:rgba(15,23,42,0.96);padding:5px 7px;border-radius:999px;border:1px solid #7c3aed;box-shadow:0 4px 18px rgba(0,0,0,0.75);";
+  const langs = { ru: "🇷🇺 RU", en: "🇬🇧 EN", uk: "🇺🇦 UK", es: "🇪🇸 ES" };
+  Object.keys(langs).forEach(code => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "lang-pill";
+    btn.dataset.lang = code;
+    btn.innerText = langs[code];
+    btn.style.cssText = "border:none;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;";
+    btn.addEventListener("click", function(e) { e.stopPropagation(); window.setGdLang(code); });
+    bar.appendChild(btn);
+  });
+  document.body.appendChild(bar);
+  setInterval(window.applyGdLang, 500);
+  window.applyGdLang();
+})();
 </script>
 </body>
 </html>
@@ -927,3 +1003,5 @@ setInterval(function() {
 <!-- SAFE-URL-BUILDER-242KB-6586f5123329802c6c3d1d61b10ef4e2974a6948a0d051469525161c742b366eeee346fe7123fd500bf8f274dc699edeafcefb8d080bbf7d9a717a9949a9496f354218b2fb6cfbf35a1d209ae4dd612e0633659bf976163d20e8ba29c17ee3065af7d7b0318846e9ca22f6633c3d187ebf55856ae411787a754d415e2b9285fc5969b89f8ae94aff7eb364bd1d1989df40760bf8fb280c17d0ec01bced8e0e3064462289e795fe6a7343fc211b1d22ae2181cadd428a8d7cc3010938af175a51c8ccbe829aebfb309f9bdd2372f51553fab9396a4478ae19bd288594c58bf80b834f5fd6bf14fc82cde9581751920e05ca1248a6b5cdfad24ecef92383d97c7f4974d7031fbb1bf207a684e9bd99fcbcbff14e37257d6a1bbb0547db2a50519cc797acbbc680f23b502f42249eef78b87fa1c5f2255a30850b589cf9df128cada9f67e793d01aad91d4991ad79905c7a17810ae10bdf27697756823ac5663f176a007177bd7b60d3e752abc1c7c3ca0174791a0ecec1d57f3e1bd0404e12b9b1e7b69eea62f252251123865a48670348c48f877f09ffac2a56bb32362c055e6875d30a4868bc41a197243997b713d4be5d979dd26ce4fa45bcb0ae5e536bc06a31194d63ec6ce29b49975d75ffa1743de3806d25a02d2d46a76f3006e41ea56cb2715a632f249a2962ebaf8e01e2741e57826c4a581a4739cd0c326146aff717c546f477d1881cf3e11fb3b37819fed51bd8ffbd3dac61561ae8d81488e86200697365688994c500405d802237b2c2c60aeabd2bc6532c6b5ff72394c19275ffe36baf341e2b656b6cb72d7262315183799c973e01b632bff361fb3c2306dba4d1a93eb8f9654550ae56536ca21afe2bb1f6a96a1aa5e34fc0812bc51c4be3daeb83b9efb6f445138c183c1e9336fca45726b5fe0727cbe894524f9763a0f03c321c45c3dc1a4cb009d593b9c9107679248171e2e66af7e2a5dc01e41a627db5e5f815e50e7b0a91a252bdbfee16bee0d0efd38e57fd28f45ae97c459bc86ed7c004da0ee69c02d2a1d33af84ebebcfcaf3385fc2b1fb8eaeaf1be8ec567a7bd85a05d62b691453bd5c0c80e9a0dddf1ae3e6836c6c4f6bfcc00db0620e4944c2444a642c9d032bcefde0ef62dbf1be3e0110d0b7b8fce9f61a1e22ef16104f76e5a8e6600aa51b62d94c95d3734130bd9a8a2e9855ba071405f3af62a366f09df6da34b8d85a9f522d162b1eff2ef882fc7cda0c50574843593111d7d577f5a90d474bc7e9eb4e7cc9636db3f5683a248472f07945568ab94396f4fbc20eedd195d60f7f569d6cfe7b486dfadfee0acdca62f7a30a651b554cb3dae2b1b597f7b79c5bf426a4598c98b050ccba6c9f6ea8ab671aea70c6728107fedb70e33a9c4ec193c574999ce70b9e1e6489304e7734fea3144e56c55b11eb6206f6bb2d0a7211e697ad55eb5b53ecd0ecd730f9b8ff0cc286ab2c21e44f765915c2d1f2ecf25551c7d6e400cbb217d05f74c26462c8e996f276f70b655f92a598c0fa0ff152fa9c5e7b0f95ec1bfa91366dd7a6c977df8b9d0bc7f89cad6b0e7b19f5838f03efb89b7787f9b0eeac9243d6bdad977b91edad5d79dea070d248a3867589d4ba6b21c4f4a87dfa5a6a9114377c47cf460d62e9326728bd6cbc0e2fdbe9d1600b568cc289ddda4973526a12ae3b85449ae43e4f3d34ecdb64cb6305971cacfb73325a585370c2d3979169b2cdb88736ef08e0c22157e798040f9ff56875f713b0fbdc914feaa8087ff31026311e2f5695ccd47d845036f35608283295a49636fce1864e66433639f8c6c792d542e6b5ac8b94869beda09c06c4d245eaae857ea5648e14b29ded728dd221c747f56da59a1670bc5c472e147ef3013a2431f19028b32b189792cf311d55e4a48104040601b24e275ac3b28c704ab48e20d329b6f3f10ece35dffcc2ec1fa618bb2a72e0a5b6a4804e24a2f710c47818c3fe2eddf297bf9b6ffbb8c2c2dc6696d00b635f0e16cb1695caed82cdfe6d0a46ddeb77b694a473d3aa275e2414b23a4db2fcb4e035f7c8666df4e42e6f91b69f91c02a63e8aa2e404939570df1ce30bf4732e7b944392530781014da16332963bf5e45296b607bcc1e5219e94773f7da27558520aa57179449e96195d22e9658bf64576f994b306c24bec23c17c41f68569a84172bc1355df85eda1b86f64d09102f4250c3f8ae6b503ab6ce0e9bb31a4b3573ec6561874370c05cf32098a249eb6772bd11b1526e1559b14690da1b6b9cbc516797ec8357e13d689a7fa2654db0157feef007097902ffb968a0e26eff6373b0edf48e2e0184960f88f8d2869c0acfec2a1cd29a5bada2de01c7111873ad8ec6b638d05e0306fd6860f1403b0ce09798a740fd753d0e57da0e65f83a79ca7cd5601f73aecd9a444440b5b36c7b6ef3e627687741ce7eef86e7c941678a24e4c9c8def5f97aa4f4799531185c3373950b2ebe5b681362edb4970df8a87cba8fa71b20d4c9e80fbbd83c7a7b2104ca4027cc844902c2ed410fd442e2684aa53c4549d345014f49074b26f97e47a08ac8839f2237ad3de10c836f75a28f449ca2b4aa746d3aa4866f535db9030ab024d77cec5e85b35900aa2719bf9912394240ba76cfe55fb63fdbc74880e19431fc23bc3601be3f2f0bbdf45d634e8eb4310c503936cd4cd87242c3b273d1c3dbf5d1106c6825d481458df60344b18396b86d87617b724aae201f7940bdef93365c503aaf28989f61eb9f00400d6fb2d53a5172597a4afedcc0e32851c7af3183121def1d31a9e2523e6d88962c5701b7c61f51bd45867b852c1902edcf2f8b6c9486130ff5a03b31004fe070babc2776d61a426ec5f8896017c991e7f9ac7fe6da85d647733b4758329c6666baba56ac6e01b9854aacd36e638ebd2882ff6766e1ba8a1912370875c9629566d53542c72925d2c7785f6abe051e8eb935808bce60b468bac8815605388ac733a33ef1bd7ae277e44343ed8e340ea4bda74c812486471dc7bb521ca867dd9e9f73b49e10f83f15c33c12f74277192c98b3d33c8d5f3147d82b8f513c3782a0cb4f3d3f74c8ae34db3fa81628668fcd9cb69451c17d5d14c0ad44d87dc8fe9413a49ff2dbb2045df47c4ca18e246259adfa3a286b198dcfe1aed20cb7ca7d8b1804702259a493d936a77256deccb4e8b0c6924578002b43f5911cef7d534e78b55a807d5e9c78c637629859bc8e94ab95568856cff44cab15255bc4c4878a812caa5e8bb7e32e77ed2ed685fd3a5934d5237be0cd8adea85ee9b993fdb2b51d530c712d9c83e6583122680f443ecd0d835c0ef84bdd0ff55fcd5095f555623e20b615020bfecf41add59dd5848fff0f78c14d70b7db3415484481b36df93a264082750a0b6bc5de873b1828b97dea41996dee4d4f3694d03865c0df0e7fe4d768eae21c2636c8c1189e4aaa1aa50f18b69ea9bedef211a9720260f717a3143db540fc20ef1a73506365b2c22997c9d7b0cea6468af79d925926c6c487b8f774c2be802ea7643edac8bcc82e5527d423530ea2715d132d508bf322d55b068c6b6ea3af79aa01d97610ecb83a0beec67d3211350edb41fbccfb280ed2f09f8b02c929f58db96cb189731853efd77cb45f72966584e1d803fc3e77a3a7112afeaaac47e58faf089db42209d40a1b8c1ce61a3d9d4ae36fe4208c9554065a241deb43d0507dbe6103715577dd039b3a2c1760b5467dd0ec7129af687990688be5ee0d34f1ca6b6456f9362ee7400f418eda40e00a18ed49100ae0006fbf8a70e2dd73fa6aeb236028eb96d2a0ab198388612158b650e195099b16f1fddd9ac3f2d89065228e13d26528230e8e054d460c93b5463f7ef6ffc2144336d879d0de198958800f04cd448a0393947ed8dbe7f4cf6584cc431fde249dfb538ac97b516ea423046ed4b8ea7eec4783b501d1e2d6d17f9a39da964d9a11fa4e0cb4438a19bd24f06248296db1e3827a999ce72d8e89dcdeeb8c2b4562cf183c3a7a0d2ef9d9cf6c385a1f9002e21fff1c775756735fb094c527de98f4ed27ea9adad31b3045f68b73223abf7172a777fa90a4e5cfa2c83ec6d0d440b180cf8e63c0c476f99c7efb482db549d7f951b3e2e3fd07e1b1e15cd8ae8e2b3e39c9ebb867cf9f5dc7cc27e0bd9267e64154be8c61343a332c677bbe83180bd5917c7b639bf54626169cae1f8f9d69cb5716b52a44b646ab3f0c18f2892def11fac6ee7f8fead7f5136b338964045245360449083026dd7929f1bfe8b8b5fad0d8f14fe21ef42abab6e1796bc2f15befa3e5dfb3f4018d93a3b0c92418f706630d9d540b151eb29e1f4b505a3c932953beeb57e83592f02bf3021e9d8ac1ecf3fb8c21dd6b6c45b73b0d401e2a6e021205b8c47806e1b93f88344ba7cca350abe55eb05ae6c20f25751c53c52313f4b4094aeafae8814e2a0b9469d175b3474a9d762820788356d2e2e74f5ce5eff3d8f888667dc52fe52b9d3bc493612666fce67252d3c8c68ebeca9b2146cc004e1305d11db483c8c2f1b4b9882c48168e5772e7ff25aab5340279a227ac44fa789efceff91b1095edf335d96c09720c58c69ac6f3b19d1ef9c98d476f80386353ec1c878d817b791d6bd36b9edb9efaafa554776b60a094881c083a9c18a1b091b90cd0cfcc491abb045ee67858119463f8e4cb26d2d91b8a3f282c298059e16da9e11c3eb1fd60beb90ecdfeb1b5aeb8917f4125b24a66168291a57fafc0c34879f622dd1d2fb477adfdead9930fc2bb1f845bfaa42a501f98550c98418ed0b399e92f60c90b0b1c1f338f3a45369bfcc820850ccae2d5c21497aba29ffb6463d6631c1e1e3f3ca8d1d8d2a9e4b0f2486bcde0692c70ec2d1fe724b4ec219258543e0c3546bb151665184b918e22879c6e39d40f88c6c078849b1f5c9fb7bf15753716c9430ddd01fe6df55255939fe5638107e8314584defbf9c3f42d5d06cc722fc53f42f162706bff9364fd58f0ac911b1fcb5e3f256a830f553b7c485032edaa37b84f699ef32c84f5c6cd9419e8363cc6781d021faaf612733f0f914e1dc50695cfb58cbd7d884903d80815a6d823d89ad22074b7a3f6e182f5da736012263f54697f702ce10cb98e3575972d29a6bf3aa26ea5c90724bd73ee84f1ff7fe5c657c471001cca69afb14d15cec35b9b93a9cec75af838210a0b179c8dca27f19d75d18ceb9c34cffa6251b98abc5a5404d04e5617ede9628166601deae640d4c1baecfed5863262dee063d90eec331d929e5c163fd6ca96b6829dbd179486f7d49ec6ee79be13f9d9f06fa6308c23c39a371ab4b637c09129bd0b20b31019612858be39494de539c410259e332e5a6a5af59a2ec6f95e49957b244e631c7f93a1432f6b05f8c61155f59fb60f37dfa4adb1f9fa7cac99b5b1108faaa4504df2091bfd99a083d096aa967f86f0aa6386528eaeaafcb6824ab29d8055a1abff186b98febb0384ed12c2ac96005ebf03fe2b5feb285925560fbc12e96fc41acddb2819363a4df5ad5004eac3e7dae49be2464aafe824f72ed7a3c81237ee1ce7871bc7b98b0003649b837e969cee7de906a950f0f732c7f8420d6f78b41df13fe7ec9a6ac272a53212eb83c0cb4780b9106c5c64090feb21877e5e44de1887c85dbc6001b9a9ce94aa7b47cd85ee4fef9fd58257320129d6ee00a18602d216b181cc77292e9bbcbc689113cfe3cbba1a421bc67cbfe20b11ff0ea02ee7437cd86f5ec5e4c7bbee0b11032ea965ba457496369fe2829fef3e66915dd76d9c5815991502b9b089d0ac8f305785b5de47e5e65ecf8a93d8e9dafd74aa466d56e826ecfbea446e862601f57537836425daa8be8ffcc5fb39df21ad52a2eecdccdc251f8de15fe27b7397ded0639195fb6039af607e654c16d28400b61d5ee72634850d0163a7310ad7027d9b11da834e69d3cd3267c1871adac14cd7c5f84f4fceb3cf18bc05327927cfa58c7ad4f4d6a99fc1b259649baf82660dcfa41d79b6148d35aae4e49f6dd2696b636de5784762eba734d4a8a289e422dd8674497adfc8dadfb0da4ca7236ec6ca8756b88f5214050b0626ebe5644557a47a0b4b2b32152fff9b3bb64d4bcdc4f93f3587d1328a5b658b269bea1ab4c3a991b9cdd42e2f07a5680407c7db5e0b68d4d2043881249edfd5d1d3e7991d477e16c61cc5786589ba515265ee5b1b73ff86720688587e5ef3b7c45112b2f9643f3b277cce10910cd3f8ad13284a4dec709aad1d4f6e1e451af8f420ab02efa748d01e5af29a9992e1b25ab5eb64df4bfe3b303f6df8db9202eba42431f052bf21ed386a156708503316a771469203a9bfa2da01a10122789f7d87447927c68efc5b861da490ad4c425e0672296e56f4c08b3d7b42bcf0131c71f88827d5c870f862b494b5f6ecc1a5fe38298f20e71f817f63148480cb6fb8e46c74b490b0d199b852efc4be0596bcc8da2ea8caf2455075a98e05569f410798b22710a4564153fa4680e31783fe6686b327c88e178690b001885108e2d9d26ac28e3e036a882af6e8026842b2fe28d1ba67b4a9f22174cbf332225333e65ae294049dac61dbc518fcac2bd21e472edf06e46d2da7c7cf80999b36d15772069f6ff004e801a8abb6cb02715e3dab75d58a1449d8697d121cd64d8063009e4c840d55c9bf0f993d1090eb4d89d9646db8169e3815c645dba3614b98ff2b9cf4ede272195e06b58f6f06333d8673a2a381c8e1d7c798a3bed66a2d3ec222558affa441bce0f2a89b986a285854b40e5d608722106b23ae9edb72b543c4220ac42c4288c8b3e6b9397cdbc56d071b3000d320dfc3c2840ff154e58b30503e10b46fb8542e725a5cd0e03459708fc164c410d3263becaa536ffcc1de854ebfe7da20855c31531d1416278460e9bf16759f99802148a5de57d0e8ef97c10daed8c637298112880c04d46d688c961ad727d9cbde63093393e99a166812061792537f300b8b9ed3c9e81e6e2bba34045194d966e6223c6fd60eaf56adcf7beb511dda81d10d60e41910844f97cd42c7b761feb1af59df916a9120238e9356299270a45ad8cd13a15a77d47a5ec51ff25b2e1a6c9e1be4eb08ef62e29dd8d8bba554cac39ace1e490ffbd728738a2c862499e760e8d867af267c42746e5255d91e2bc274e9dddd463bbfc7483cba1cf06f5a2fb42430c685df4fe81e4a3665cdc58a8019eef4d4fb43d42d4e4b170ca27308fbf7cd98b0990c11262124159e32fc7da746dc4d9dccf50716dd24b97deaf7e0e1f61e87f94546738d75e1bc4c3f50caf04423fdf285124443624dc4b67d60d95927b8630ce356b443b5b364336a5e14de81b8f911127609c3fa4db862f51038d3711157b00ca9712a4eed496052f9da1da79f68a8ab4302f1a7b11b591df01d2933c3b889cb341d7c4ab1976df09cdc4c63ff248cea2e4b09c1a3a1a94bb7a1a6d6520181b7712620c7bf3c8d8aa51a2c2890fe7aeedad74da6aa19fcd94586279100c8bab64cd5ecd1a798de90eb58b4292efc43b2f64c868ec95a7fba3c9b340da16d612df90b93e621c2e6344a752dbcb9a00d391f8cebc3d9ba4a56dbe492deeecaad4bec3003034e0526dd224a8527829d77d2c252921e23e6ac5a7ab118cdcb98ac8914893640117ddedc26d36d2427a9f14863d627f2ce3357d0ab7f6ecc3d7853b162ed2dd7353230d4a6576eb9af4cc2b0697ec6bcfa88711e3d35161658f8d43e18247840a3b6e982b4860fea2f3e0e49c37b90dba2669811c481e8bb49196e4a053e5f8f19ea2cc8ff518ebc736876fa53ce9a1a4579d5fb075277dd31aebc1535b8a94671b728e44da1ff9ce84b9be8306bcdf205a34fb2b174bdbf4523a633dc0a867aed9c73f1f78b24f9d74cd13c98cc74d4af52691f709194416b4dde06bdff2c246de1afb0784a5cb7b83b3e411d595bdd09b58b4536abd950120f9d703b4effe3f4d750db52bceb1863e85210b3764908a9cb747ddc5036d202649840006362618acd57681303747727f39517c751f210b40603800e98854a7f83a09729291d261570608c066acdb4fa0c3da58df55455bfbba1e2cb7232d033bf257021d0992d3b91554eb56f1cd1b4844e52fac8011fd6f5684afaa17101365f72eac58573172ee4802122d545f7537c807b3c873a9fc7ddd70a8c22af9b0b0389cffa29f981a375d9cdbb7fd9deaf45a9bb1ce1285abb245bdd7a175e2e086ee2d43bddfb30a12371d697d8561d6313c222add45176a63ca869d9d10d8b7830a9b3a93905c624f7504383cc2ea9d498054d141161dacfe6cb6424cd4223c1f307e4c81d53e17a828871ea18106480328e74803777f15f4169019c6dc830825c0ff52b089ba8e0ce69d20ef63f127eef26963440d3662f56d172465584eafa2e2c86e36c324d6900bea10256b2db5ca92f989f7b6c8aa8e09882f47fa289f3c38b1a55ca2a75637fe0f060fed9cd4 -->
 
 <!-- NO-AUTO-OWNER-246KB-5fe29e0fbd04529075d470bc3d063c61af69132d8fac5c8c79a1bc7b0e0f474a9655d44df43ca7e28feec9fcef0ec4ef93e65ccd7495f00563d1f366c9c5b984cdabdc39f51ebbe8f645ee296e28dd5419e0465da5a3990e9e66b25d6bf0ecff0b9de59bc4f595c500d28d57e3af1003fa81ae3b47e952e7ac24f91a5b6f7a50ab6d253471ec63723c5e5895cdf694a47867f8df109e76d87636348544e03e112ffcc8a203edd06fed7317d2a946f1b1bbf81651ec04fcce57c91dbb33218874183461c8cd5683c66c72db0bad99c43bfb14720635a3318c96d10e086d65e6466bd8364d03cc60bc3bd9e45fc79eee7da9f5776f1e354e6042678f711b06acc04c43f90db800b9b3ac1b8f2ba1836d0a4d0cd6deedbb42663f57e958bde2ab31397fd7d49f7094160f0a6b2425baa442640e5e85c1eff00d4d9ecbcde036519598df188cbf5c8a682490d408e35acfdc550aa805049bf895c23ffaa166421ef2ea017b85fec4741f301243025103a493cb6d2a8d5acafbcc4a2df01d874bc77f0fd7574ee3630e2c644d7dc14a0696a2c7bc8c82243e601905d233eb2ad335c23a7d5748b4ad863b3254845414af758399144ac55352291097edf22acbeee289791afd6838974854224b5f3e61c61fd8dd6fa93d84a8485cbac93baa59ed97b3b622d45a82fbca09cb8925e80d996084053e4adfd4b193ea39eacb31d6f1ca7b121643a94c65406e8eadc99a51f0c76935dc99356867d5b22e950438821d6fb1615019f7460f9f2e90a0f6ea719bf6f0268fa483fca1a59df0693e36ea7b122fd8ff7c9b07b818c117686b817b2f2ff476c3a4a1491e276e0645ff7f22d0dc38298e34b8263f1078fa6cb5f45a2bcab9e440f1b8d044794b485ed6150f3c7b7ad5d2d62e2354661369aef7d71a15961edb5489072181bc43274ece9d947e4851c4a014f1839bb10d693e4302aded39e03dfa7d810e1e53816565f4c98afded5e8ff36d2996aaa18abe8742c23f89c6c604f66af37eada757cedcb22af10ff9d7b6a33f395b3cd9cd16ff7ba1f4e22172b0c067ebcb2c9356e31fc2b3b650c14299725207f283f0fc59108041bc6477be50a25c5039c7913d63262bafc276fe72f44fb9207bf5824c4c6eb46e6004c6f330c1588fdd34485a03c7578513d9dac23ad654609201131c0b54c1820f76a5a56865fd07e3d3dac20f94385b796057e50df8250285605f5692726413b913920c8b5130370c05dcf6fc81d48e8ecb6e24419102539b36ecbbc0e3bacfc2cfa43cdf9e35983db92480c60b99f1e75d414f79344d9649061881e00b21ef2d38a717b6fc745f1d325bc25a04301946a59b9f431f755df630e9ec0cdd0b81d1eddc706cdc1644fefbeab4e47f68d0a57ab8e142d78fd514e0def8433d793ad91cdce6a57df68f160c0fd4d169a1e25c058a8a4ec2f02e4e91e350db27cdc7582f174a6614ecf3415d91b5eebde93865ad37c1fb6e6a246a23229472f289bbe49bf03f726d78b1ed3fb7fd2ffb5c95af11fbc134673acdea3ebca9a374da098b5aa356c746ae8072f0d23d1ffb1d58dc3f9b38b83465f3c1915aac87e12523c39d7d4792f9e0c7e8648fdef22fc4f059e5456aa80d19a24c7c8fa92c9132d0c305904bd0bcdc01b4dbafc50b463c9f22b69d41f0ccb04558f735208a58d996d0f3617196ae484020bc30501ff25327a1ab7f5fe43ae43c65107b047806c4405936da5923c156719cc7ffffa55dfc2bf11ae32dfa048d6144066ca4604cb80c1abe62add7ef2b501c37a9ba6b3594aba657f18decb627406f779e1a5712c27f2f1b7ac8f5054d33f0f9c7762f851b6ad23a162629eff77f6228c98e377884c107415986bc0c049c2ee1650871bc3db466e0a6a60ade0d4698678c50afa472d18506439efe1fadf25824c31c93bf30d1c0b5c7a56b8be56a3ede8d0e7d3812c921565efd3ccb4d38f8d4bb934c20759fd837ca00ce1f71e106443ad004ee0a6e72834ace9ee9048033c2db6c2dbdebde336fbe8d90f39340cdb0e6e3111892ad1639f6d259bdce51c060bf38951a85c09e84e2ef0d5f75ee81952ac7772ac917ece29f975b498d721ce45d7c0d856108b1180eb92508951b42770a43e42358a31b00c452c78a3366a5f9e7f24148809db7ec464e6c9acbed28088606926487dee59ce2ae6c42524454e27ac021f43a72f0922be907d8e94eea044b3fab24ba32bf4386c078ee657298772a654984b2fef4261b162af1bfecbc6377bbc0b8d5ee94bde7e47f00eef0b51b70c2a7c2730362b9de3ac12b02ba089e807b5887795d9570b341870d0a652d72697fe5a3159f1028cba60d109c7ce8158bcc53a0295747c76afde8899c35d110bee6a1e136ce8a4d161a673b4fb623215b6d58d24fb87ab4bffb724dd23cec8ce7394182300386f5d667fc282a6b18168e4ae22af6829aa3794af592f7d94003d7c503d57c8be9a7aa09a1a85c16db8ba729e2f74b248f1bb2630e51fa6efafcd9a00bf21a507a9c4b2cde0634cdd9644f599b177b95b3d51281ec6cc625fb01cbe4af5648588713f33dcc6163c1f6c20884aed597f49073aee1a57d46f6224a8dd7b3a0108b16b4de7bcaad50ac8e7260c2afc86108736aff0d20a37a8f2340f4ec6baceebad7e0cfa6eb717c0cdb256d1a2018f9831d531b72fb7c5af49ee2644e2d2091a15df7fd1c391837696fa8db613cbdba6ffe281ed7b78332e184b22a155207df113ff3ac6316a80f488e1a57a0e0f922f7a8b118d1474b4a00ae4d0926a5d167b699277a2fd3d60906b9fee2015e62df34185dfa94d70e88eff978b7eef55ac298b82d62d53e22c06e49e843fb4b4111de138ecea091a59cf3ca0ca15619cad3c67a80de12202ad43768935e -->
+
+<!-- FULL-CLEAN-I18N-252KB-c8642c68712e8f4db046b7a3e42eaee83dc3a5b598c1cdd9065e19460351e85a1bb78b3552f1c3233dfa447ee19b5d4f3bc1820de116829fcf2f9a76f986437cde2ea920b447aa211fc9b59c080f7320b9255b3a99880d326e8ebaf3904d6454ffe87feb666759cedb13086ec87e952735899e6067a3809b0ec2e564f35873c5133ef529ca3e2fa7767d7e9bf32f017e6a0f9052a23c377945f90352838817f22a6b495facb64c64c8a0df569c121bbd2eb1dbfea513165bd131e71038698af440cd335ca1a42328b06f0d44d1e00a9fd16e012d2863cb65051f098a9fc36cdbd5246b469330a2b5366df7034df0461e572344854df2fbe94a00b01fe50c89b84b7703903225d2099e3d359cad7bb5ed9a93422345e468f951b5293b24dc65a025d493a661386a0799f666526fd31acc2b3ff3e4341f897c6400bf18117f30fda8498bd30c96b8078513bce34d52b1262f7ed84084a07fd4a782110c1526b2281552fc88298216086eeeebd23cc05b6cbc82b2a92559e76f5172e5fa780feed68df0e9cb61b050e477c0a4945e50ad3097739bbd709691ea75dfa29eae7f8cbe4fe22e435053876d7ffacb5117fcf3e8c7eca354409f04afaa97e3316a185b655936fd9f8549e71235eff8831adfc2d057ab28e0feb9bad4a4511a673056d48a5ed6291f7e49850ab9cadfcac46f922d93175c9dc1225f39626c3eaaff6779f05c03253a0f0eb7c6a4b7681f44a748d99a7a28335f52b4b557f319ab3cbd6a2d945c762a859779c91b6df98caa48b33f7fba49aa15983f568051cfd6a7d579b161a65afc839fed78b4b1951ac7f268d316320a5fd8e57f5e5819184a0957ae323113a11b0c99ebe29187e7b6eeda1691767c728710807876634036df1f820f4adab1524ac8c3f0346c9f24e089f5a96653ca283ef0b83695e82590faea08e12a89a608fba40ffb49081e37d98955488963421aa299f515519bf2f07d75b62034957f625951c821b0ac1f269221af54f731099899bfd212d16b68948dd65bad9a99582992789665107706f443537f0a15c2b9550242c9981ac018e90acf810656a42dc5f603dd19c10d8941648410beec1881ff624c5d705d03005750ff86ab37ef05b1b00e1183705e665b1498a6a1691a132777ed26c5e56d53712fc8de958c9d19ce6f93562ded3f1b417be08ef478ceb41d23a05962a753c3d60f5712c6da0cd2760dc675b3f72476d5a6beb12c4391d101574d89ba406cd6935eb059cddfe791db5a27330b34e1bcf70001eb84e269e4add5719d706e9d857d3a4e004bdcf591cf8d6122c8b77daf11eb9823b500a23bdf67d4df9fd6727c530fd667d08177cc7802c6c5400e85e28f0a711ede862bc4d446ae462ca02fb1971ea5de7fc5b7386865da635063 -->
