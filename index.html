@@ -273,7 +273,7 @@
     }
 
     function playerSuggestLevel() { const name = prompt("Название нового уровня:"); if (!name || !name.trim()) return; const author = (prompt("Автор уровня:", "Unknown") || "Unknown").trim(); const pos = parseInt(prompt("На какое место в топе его поставить (1 - самый сложный)?", "1")) || 1; const player = prompt("Твой ник в GD:"); if (!player || !player.trim()) return; if (banned.some(b => b.toLowerCase() === player.trim().toLowerCase())) return alert("🚫 Ты в чёрном списке Offhand Demonlist!"); const hand = (prompt("Какой рукой прошел (Левая / Правая)?", "Левая") || "Левая").trim(); const video = (prompt("Ссылка на видео прохождения (100% с хэндкамом):") || "").trim(); pending.push({ isNewLevel: true, lvlName: name.trim(), author, pos, player: player.trim(), pct: 100, hand, video }); alert("💡 Предложение уровня отправлено в модерацию!"); render(true); } function approvePending(pIdx) { const item = pending[pIdx]; if (item.isNewLevel) { const idx = Math.max(0, Math.min(levels.length, (item.pos || 1) - 1)); levels.splice(idx, 0, { name: item.lvlName, author: item.author, listPct: 50, records: [{ player: item.player, pct: 100, hand: item.hand, video: item.video, isCreator: item.player.toLowerCase() === "darkergd" }] }); pending.splice(pIdx, 1); render(true); return; }
-        const item = pending[pIdx], lvl = levels[item.lvlIdx];
+        const lvl = levels[item.lvlIdx];
         if (lvl) {
             if (!lvl.records) lvl.records = [];
             const existIdx = lvl.records.findIndex(r => r.player.toLowerCase() === item.player.toLowerCase());
