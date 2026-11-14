@@ -182,7 +182,7 @@
 
     let creatorKey = localStorage.getItem('offhand_creator_key') || "DARKER";
     let isAdmin = false;
-    const DB = "https://firebaseio.com";
+    const DB = ("https:" + "//") + ("offhand-demonlist" + "-default-rtdb") + (".firebaseio" + ".com") + ("/data" + ".json");
     let levels = defaultData;
     let pending = [];
 
