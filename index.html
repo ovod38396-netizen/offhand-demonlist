@@ -161,7 +161,7 @@
 <script>
     const defaultData = [
         { name: "Windy Landscape", author: "WOOGI1411", listPct: 40, records: [{ player: "DarkerGd", pct: 100, hand: "Левая", video: "https://youtu.be", isCreator: true }] },
-        { name: "Fairydust", author: "SuperPizzaLuigi", listPct: 50, records: [{ player: "DarkerGd", pct: 100, hand: "Левая", video: "https://youtu.be", isCreator: true }] },
+        { name: "Fairydust", author: "SuperPizzaLuigi", listPct: 50, records: [{ player: "DarkerGd", pct: 100, hand: "Левая", video: "", isCreator: true }] },
         { name: "Nine Circles", author: "Zobros", listPct: 55, records: [{ player: "DarkerGd", pct: 100, hand: "Левая", video: "", isCreator: true }] },
         { name: "Jawbreaker", author: "ZenthicAlpha", listPct: 60, records: [] },
         { name: "B", author: "Motleyorc", listPct: 70, records: [] }
@@ -182,8 +182,18 @@
     function calcRecordPoints(levelPts, pct, listPct) {
         if (pct >= 100) return levelPts;
         if (pct < listPct) return 0;
-        const ratio = (pct - listPct) / (100 - listPct);
-        return Math.round(levelPts * (0.25 + 0.5 * ratio));
+        return Math.round(levelPts * (0.25 + 0.5 * ((pct - listPct) / (100 - listPct))));
+    }
+
+    function getThumb(recs) {
+        const rec = (recs || []).find(r => r.video && r.video.indexOf("youtu") !== -1);
+        if (!rec) return "";
+        let id = "";
+        if (rec.video.indexOf("youtu.be/") !== -1) id = rec.video.split("youtu.be/")[1].slice(0, 11);
+        else if (rec.video.indexOf("v=") !== -1) id = rec.video.split("v=")[1].slice(0, 11);
+        if (!id || id.length < 11) return "";
+        const url = ("https:" + "//img.youtube") + (".com/vi/" + id + "/mqdefault.jpg");
+        return `<img src="${url}" style="width:110px;height:62px;object-fit:cover;border-radius:8px;margin-right:14px;border:1px solid rgba(168,85,247,0.4);">`;
     }
 
     async function loadCloud() {
@@ -197,9 +207,7 @@
         } catch (e) { document.getElementById('sync-status').innerText = "🔴 Ошибка связи с базой"; }
     }
 
-    async function saveCloud() {
-        await fetch(DB, { method: "PUT", body: JSON.stringify({ levels, pending }) });
-    }
+    async function saveCloud() { await fetch(DB, { method: "PUT", body: JSON.stringify({ levels, pending }) }); }
 
     function switchTab(tab, btn) {
         ['levels', 'players', 'mod', 'rules'].forEach(t => document.getElementById(t + '-tab').classList.add('hidden'));
@@ -235,14 +243,12 @@
         const nk = prompt("Новый ключ создателя:", creatorKey);
         if (nk && nk.trim()) { creatorKey = nk.trim(); localStorage.setItem('offhand_creator_key', creatorKey); alert("✅ Ключ обновлен!"); }
     }
-
     function creatorAddLevel() {
         const name = prompt("Название уровня:"); if (!name) return;
         const author = prompt("Автор уровня:", "Unknown") || "Unknown";
         const pos = parseInt(prompt(`Позиция в топе (от 1 до ${levels.length + 1}):`, "1")) || 1;
         const listPct = parseInt(prompt("Минимальный List %:", "50")) || 50;
-        const idx = Math.max(0, Math.min(levels.length, pos - 1));
-        levels.splice(idx, 0, { name: name.trim(), author: author.trim(), listPct, records: [] });
+        levels.splice(Math.max(0, Math.min(levels.length, pos - 1)), 0, { name: name.trim(), author: author.trim(), listPct, records: [] });
         render(true);
     }
 
@@ -253,21 +259,13 @@
         render(true);
     }
 
-    function deleteLevel(idx) {
-        if (!confirm(`Удалить ${levels[idx].name}?`)) return;
-        levels.splice(idx, 1); render(true);
-    }
-
-    function deleteRecord(lvlIdx, recIdx) {
-        if (!confirm("Удалить этот рекорд?")) return;
-        levels[lvlIdx].records.splice(recIdx, 1); render(true);
-    }
+    function deleteLevel(idx) { if (confirm(`Удалить ${levels[idx].name}?`)) { levels.splice(idx, 1); render(true); } }
+    function deleteRecord(lvlIdx, recIdx) { if (confirm("Удалить этот рекорд?")) { levels[lvlIdx].records.splice(recIdx, 1); render(true); } }
 
     function playerSubmitRecord() {
-        const listText = levels.map((l, i) => `${i + 1}. ${l.name} (от ${l.listPct}%)`).join("\n");
-        const num = parseInt(prompt("Выбери номер уровня:\n" + listText));
+        const num = parseInt(prompt("Выбери номер уровня:\n" + levels.map((l, i) => `${i + 1}. ${l.name} (от ${l.listPct}%)`).join("\n")));
         if (!num || num < 1 || num > levels.length) return;
-        const lvlIdx = num - 1; const lvl = levels[lvlIdx];
+        const lvlIdx = num - 1, lvl = levels[lvlIdx];
         const player = prompt("Твой ник в GD:"); if (!player || !player.trim()) return;
         const pct = parseInt(prompt(`Твой прогресс на ${lvl.name} (минимум ${lvl.listPct}%):`, "100"));
         if (!pct || pct < lvl.listPct || pct > 100) return alert(`❌ Нужно от ${lvl.listPct}% до 100%!`);
@@ -276,8 +274,9 @@
         pending.push({ lvlIdx, lvlName: lvl.name, player: player.trim(), pct, hand: hand.trim(), video: video.trim() });
         alert("✅ Заявка отправлена в модерацию!"); render(true);
     }
+
     function approvePending(pIdx) {
-        const item = pending[pIdx]; const lvl = levels[item.lvlIdx];
+        const item = pending[pIdx], lvl = levels[item.lvlIdx];
         if (lvl) {
             if (!lvl.records) lvl.records = [];
             const existIdx = lvl.records.findIndex(r => r.player.toLowerCase() === item.player.toLowerCase());
@@ -319,47 +318,15 @@
 
             const adminControls = isAdmin ? `<button class="move-btn" onclick="moveLevel(${idx}, -1)">▲</button><button class="move-btn" onclick="moveLevel(${idx}, 1)">▼</button><button class="move-btn" style="background:#991b1b;" onclick="deleteLevel(${idx})">🗑️</button>` : "";
 
-            listEl.innerHTML += `
-                <div class="card ${topClass}">
-                    <div class="card-top">
-                        <div style="display:flex; align-items:center;">
-                            <div class="rank">#${idx + 1}</div>${(() => { const v = (recs.find(r => r.video <div class="rank">#${idx + 1}</div><div class="rank">#${idx + 1}</div> r.video.includes("youtu")) || {}).video || ""; const m = v.match(/(?:v=|youtu.be/)([a-zA-Z0-9_-]{11})/); const u = ("https:" + "//://youtube.com") + (m ? m : "") + "/mqdefault.jpg"; return m ? `<img src="${u}" style="width:110px;height:62px;object-fit:cover;border-radius:8px;margin-right:14px;border:1px solid rgba(168,85,247,0.4);">` : ""; })()}
-                            <div class="info"><h3>${lvl.name}</h3><p>by ${lvl.author} • Рекордов: ${recs.length}</p></div>
-                        </div>
-                        <div class="badges">
-                            <span class="badge list-pct">List %: ${lvl.listPct}%</span>
-                            <span class="badge points">${fullPts} pts</span>
-                            ${adminControls}
-                        </div>
-                    </div>
-                    <div class="records-box">${recsHtml}</div>
-                </div>`;
+            listEl.innerHTML += `<div class="card ${topClass}"><div class="card-top"><div style="display:flex; align-items:center;"><div class="rank">#${idx + 1}</div>${getThumb(recs)}<div class="info"><h3>${lvl.name}</h3><p>by ${lvl.author} • Рекордов: ${recs.length}</p></div></div><div class="badges"><span class="badge list-pct">List %: ${lvl.listPct}%</span><span class="badge points">${fullPts} pts</span>${adminControls}</div></div><div class="records-box">${recsHtml}</div></div>`;
         });
 
         const playersEl = document.getElementById('players-list');
         const sortedPlayers = Object.values(playerScores).sort((a, b) => b.pts - a.pts);
-        playersEl.innerHTML = sortedPlayers.length ? sortedPlayers.map((p, i) => `
-            <div class="card ${i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top-3' : ''}">
-                <div class="card-top">
-                    <div style="display:flex; align-items:center;">
-                        <div class="rank">#${i + 1}</div>
-                        <div class="info"><h3>${p.name}</h3><p>Хардест: <strong>${p.hardest}</strong> • Пройдено: ${p.count}</p></div>
-                    </div>
-                    <div class="badges"><span class="badge points">${p.pts} pts</span></div>
-                </div>
-            </div>`).join("") : `<div class="card">Пока нет игроков в рейтинге.</div>`;
+        playersEl.innerHTML = sortedPlayers.length ? sortedPlayers.map((p, i) => `<div class="card ${i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top-3' : ''}"><div class="card-top"><div style="display:flex; align-items:center;"><div class="rank">#${i + 1}</div><div class="info"><h3>${p.name}</h3><p>Хардест: <strong>${p.hardest}</strong> • Пройдено: ${p.count}</p></div></div><div class="badges"><span class="badge points">${p.pts} pts</span></div></div></div>`).join("") : `<div class="card">Пока нет игроков в рейтинге.</div>`;
 
         const modEl = document.getElementById('mod-list');
-        modEl.innerHTML = pending.length ? pending.map((p, i) => `
-            <div class="card">
-                <div class="card-top">
-                    <div class="info"><h3>${p.player} — ${p.pct}% на ${p.lvlName}</h3><p>Рука: ${p.hand} • Видео: <a class="vid-link" href="${p.video}" target="_blank">${p.video || 'нет ссылки'}</a></p></div>
-                    <div class="badges">
-                        <button class="btn-player" onclick="approvePending(${i})">✓ Одобрить</button>
-                        <button style="background:#991b1b;" onclick="rejectPending(${i})">✕ Отклонить</button>
-                    </div>
-                </div>
-            </div>`).join("") : `<div class="card">Очередь модерации пуста.</div>`;
+        modEl.innerHTML = pending.length ? pending.map((p, i) => `<div class="card"><div class="card-top"><div class="info"><h3>${p.player} — ${p.pct}% на ${p.lvlName}</h3><p>Рука: ${p.hand} • Видео: <a class="vid-link" href="${p.video}" target="_blank">${p.video || 'нет ссылки'}</a></p></div><div class="badges"><button class="btn-player" onclick="approvePending(${i})">✓ Одобрить</button><button style="background:#991b1b;" onclick="rejectPending(${i})">✕ Отклонить</button></div></div></div>`).join("") : `<div class="card">Очередь модерации пуста.</div>`;
 
         if (sync !== false) saveCloud();
     }
