@@ -373,104 +373,89 @@
     updateUserUI(); render(false); loadCloud();
 </script>
 
-<div id="gd-auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:99999;align-items:center;justify-content:center;padding:16px;">
-    <div style="background:#13151f;border:1px solid #7c3aed;border-radius:16px;padding:24px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,0.7);color:#fff;position:relative;">
-        <button id="gd-auth-close" style="position:absolute;top:12px;right:12px;background:#1e2230;border:none;color:#94a3b8;padding:6px 10px;border-radius:8px;cursor:pointer;">✕</button>
+
+
+
+
+
+
+<div id="gd-auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:999999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#13151f;border:1px solid #7c3aed;border-radius:16px;padding:24px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,0.8);color:#fff;position:relative;">
+        <button type="button" onclick="document.getElementById('gd-auth-overlay').style.display='none'" style="position:absolute;top:12px;right:12px;background:#1e2230;border:none;color:#94a3b8;padding:6px 10px;border-radius:8px;cursor:pointer;">✕</button>
         <h2 id="gd-auth-title" style="margin:0 0 14px;color:#c084fc;font-size:20px;">🔐 Вход в аккаунт</h2>
         <div style="display:flex;gap:8px;margin-bottom:14px;">
-            <button id="gd-tab-login" style="flex:1;padding:8px;border-radius:8px;border:none;background:#7c3aed;color:#fff;font-weight:700;cursor:pointer;">Вход</button>
-            <button id="gd-tab-reg" style="flex:1;padding:8px;border-radius:8px;border:1px solid #334155;background:#1e2230;color:#cbd5e1;font-weight:700;cursor:pointer;">Регистрация</button>
+            <button type="button" id="gd-tab-login" onclick="window.gdSetAuthMode('login')" style="flex:1;padding:9px;border-radius:8px;border:none;background:#7c3aed;color:#fff;font-weight:700;cursor:pointer;">Вход</button>
+            <button type="button" id="gd-tab-reg" onclick="window.gdSetAuthMode('register')" style="flex:1;padding:9px;border-radius:8px;border:1px solid #334155;background:#1e2230;color:#cbd5e1;font-weight:700;cursor:pointer;">Регистрация</button>
         </div>
         <input id="gd-auth-nick" placeholder="Ник в Geometry Dash" style="width:100%;padding:11px;margin-bottom:10px;border-radius:10px;border:1px solid #334155;background:#0b0d14;color:#fff;font-size:14px;box-sizing:border-box;">
         <input id="gd-auth-pass" type="password" placeholder="Пароль (от 4 символов)" style="width:100%;padding:11px;margin-bottom:14px;border-radius:10px;border:1px solid #334155;background:#0b0d14;color:#fff;font-size:14px;box-sizing:border-box;">
-        <button id="gd-auth-submit" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:14px;font-weight:800;cursor:pointer;">Войти в профиль</button>
+        <button type="button" id="gd-auth-submit" onclick="window.gdSubmitAuth()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:14px;font-weight:800;cursor:pointer;">Войти в аккаунт</button>
     </div>
 </div>
 <script>
-(function() {
-    const AUTH_DB = "https://firebaseio.com";
-    let mode = "login";
-    let currentUser = JSON.parse(localStorage.getItem("gd_auth_user") || "null");
-    const box = document.getElementById("user-auth-box");
-    const overlay = document.getElementById("gd-auth-overlay");
-
-    async function hashPass(str) {
-        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str + "_gd_salt"));
-        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-    }
-
-    function renderBar() {
-        if (!box) return;
-        if (currentUser) {
-            box.innerHTML = `<span style="background:rgba(16,185,129,0.18);border:1px solid #10b981;color:#34d399;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;">🟢 ${currentUser.nick}</span><button id="gd-logout-btn" title="Выйти" style="padding:8px 11px;border-radius:999px;font-size:13px;cursor:pointer;">🚪</button>`;
-            document.getElementById("gd-logout-btn").onclick = () => {
-                currentUser = null;
-                localStorage.removeItem("gd_auth_user");
-                renderBar();
-            };
-        } else {
-            box.innerHTML = `<button id="gd-open-auth" style="background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,0.4);">👤 Войти / Регистрация</button>`;
-            document.getElementById("gd-open-auth").onclick = () => { setMode("login"); overlay.style.display = "flex"; };
-        }
-    }
-
-    function setMode(m) {
-        mode = m;
-        const isReg = m === "register";
-        document.getElementById("gd-auth-title").innerText = isReg ? "📝 Регистрация игрока" : "🔐 Вход в аккаунт";
-        document.getElementById("gd-auth-submit").innerText = isReg ? "Создать аккаунт" : "Войти в профиль";
-        document.getElementById("gd-tab-login").style.background = !isReg ? "#7c3aed" : "#1e2230";
-        document.getElementById("gd-tab-reg").style.background = isReg ? "#7c3aed" : "#1e2230";
-    }
-
-    document.getElementById("gd-auth-close").onclick = () => { overlay.style.display = "none"; };
-    document.getElementById("gd-tab-login").onclick = () => setMode("login");
-    document.getElementById("gd-tab-reg").onclick = () => setMode("register");
-
-    document.getElementById("gd-auth-submit").onclick = async () => {
-        const nick = document.getElementById("gd-auth-nick").value.trim();
-        const pass = document.getElementById("gd-auth-pass").value;
-        if (nick.length < 2 || pass.length < 4) return alert("❌ Ник от 2 символов, пароль от 4 символов!");
+window.gdAuthMode = "login";
+window.gdSetAuthMode = function(m) {
+    window.gdAuthMode = m;
+    const isReg = m === "register";
+    document.getElementById("gd-auth-title").innerText = isReg ? "📝 Регистрация игрока" : "🔐 Вход в аккаунт";
+    document.getElementById("gd-auth-submit").innerText = isReg ? "Создать аккаунт" : "Войти в аккаунт";
+    document.getElementById("gd-tab-login").style.background = !isReg ? "#7c3aed" : "#1e2230";
+    document.getElementById("gd-tab-reg").style.background = isReg ? "#7c3aed" : "#1e2230";
+};
+window.gdSimpleHash = function(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(16);
+};
+window.gdSubmitAuth = async function() {
+    const btn = document.getElementById("gd-auth-submit");
+    try {
+        const nick = (document.getElementById("gd-auth-nick").value || "").trim();
+        const pass = document.getElementById("gd-auth-pass").value || "";
+        if (nick.length < 2 || pass.length < 4) return alert("❌ Введи ник (от 2 букв) и пароль (от 4 символов)!");
+        btn.innerText = "⏳ Подожди...";
         const key = nick.toLowerCase().replace(/[^a-z0-9_-]/g, "_");
-        const hash = await hashPass(pass);
-        const res = await fetch(AUTH_DB + "/users/" + key + ".json");
+        const hash = window.gdSimpleHash(pass + "_gd_offhand");
+        const url = "https://firebaseio.com" + key + ".json";
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Firebase GET " + res.status);
         const existing = await res.json();
-        if (mode === "register") {
-            if (existing) return alert("❌ Этот ник уже занят!");
-            const putRes = await fetch(AUTH_DB + "/users/" + key + ".json", { method: "PUT", body: JSON.stringify({ nick, hash, created: Date.now() }) });
-            if (!putRes.ok) return alert("❌ Ошибка базы (" + putRes.status + "): проверь вкладку Rules в Firebase!");
-            currentUser = { nick, key };
+        let userObj;
+        if (window.gdAuthMode === "register") {
+            if (existing) { window.gdSetAuthMode(window.gdAuthMode); return alert("❌ Ник «" + nick + "» уже занят! Переключись на «Вход»."); }
+            const put = await fetch(url, { method: "PUT", body: JSON.stringify({ nick, hash, created: Date.now() }) });
+            if (!put.ok) throw new Error("Firebase PUT " + put.status + " (проверь Rules!)");
+            userObj = { nick, key };
         } else {
-            if (!existing || existing.hash !== hash) return alert("❌ Неверный ник или пароль!");
-            currentUser = { nick: existing.nick, key };
+            if (!existing || existing.hash !== hash) { window.gdSetAuthMode(window.gdAuthMode); return alert("❌ Неверный ник или пароль!"); }
+            userObj = { nick: existing.nick, key };
         }
-        localStorage.setItem("gd_auth_user", JSON.stringify(currentUser));
-        overlay.style.display = "none";
-        renderBar();
-        alert("✅ Добро пожаловать, " + currentUser.nick + "!");
-    };
-
-    renderBar();
-})();
-</script>
-
-
-<script>
-(function() {
-    function enforceCanonAuth() {
-        const u = JSON.parse(localStorage.getItem("gd_auth_user") || "null");
-        const isLogged = !!(u && u.nick);
-        document.querySelectorAll("button").forEach(btn => {
-            const t = (btn.innerText || "").trim();
-            if (t.includes("Подать рекорд") || t.includes("Предложить уровень")) {
-                btn.style.display = isLogged ? "" : "none";
-            }
-        });
+        localStorage.setItem("gd_auth_user", JSON.stringify(userObj));
+        document.getElementById("gd-auth-overlay").style.display = "none";
+        window.gdSyncAllUI();
+        alert("✅ Успешно! Вы вошли как " + userObj.nick);
+    } catch (e) {
+        alert("⚠️ Ошибка: " + e.message);
+    } finally {
+        window.gdSetAuthMode(window.gdAuthMode);
     }
-    setInterval(enforceCanonAuth, 350);
-    window.addEventListener("DOMContentLoaded", enforceCanonAuth);
-    enforceCanonAuth();
-})();
+};
+window.gdSyncAllUI = function() {
+    const u = JSON.parse(localStorage.getItem("gd_auth_user") || "null");
+    const isLogged = !!(u && u.nick);
+    const navBox = document.getElementById("gd-nav-auth") || document.getElementById("user-auth-box");
+    if (navBox) {
+        navBox.innerHTML = isLogged
+            ? `<button type="button" onclick="if(typeof openPlayerProfile==='function')openPlayerProfile('${u.nick.toLowerCase()}')" style="background:linear-gradient(135deg,#059669,#10b981);border:none;color:#fff;font-weight:800;padding:8px 14px;border-radius:999px;cursor:pointer;">🟢 ${u.nick}</button><button type="button" onclick="localStorage.removeItem('gd_auth_user');window.gdSyncAllUI();" title="Выйти" style="background:#1e293b;color:#cbd5e1;padding:8px 11px;border-radius:999px;cursor:pointer;">🚪</button>`
+            : `<button type="button" onclick="document.getElementById('gd-auth-overlay').style.display='flex'" style="background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;font-weight:800;padding:9px 15px;border-radius:999px;cursor:pointer;">👤 Войти / Регистрация</button>`;
+    }
+    document.querySelectorAll("button").forEach(b => {
+        const t = (b.innerText || "").trim();
+        if (t.includes("Подать рекорд") || t.includes("Предложить уровень")) b.style.display = isLogged ? "" : "none";
+    });
+};
+setInterval(window.gdSyncAllUI, 400);
+window.gdSyncAllUI();
 </script>
 
 </body>
@@ -491,3 +476,5 @@
 <!-- AUTH-ERR-CHECK-126KB-7fdd5b6ef4759094cbd25f8c3aa37712d22f7c9e36b65ee426e1eda82150c33ce81d29eb51492d2925091d797626808e97a9bca067129c683572cd46dfed0214cf67404c891f07d5722799909596f75e49b9d75c260532e84a23fa1105f3d9fa40210c194f4ae33a32af7add35ed8db97861048b19d672fe0590944b19159616632ee3e966f2884ee6f8a2144c848723aadf5616eeb89fb820ab164e15838f8e632a31e970b59ebb6bbb6ee799cb3378bfa0f397d9403c7f940bcb05f6ed4e0a159ee4a2530a51f7cb1a324ddd6f1fd0f8846514b8a85697e4b9cd2eac0cb7a91a221ef37027c65bfe151fdb07cb041217aefdf17c47dbdb461085e6f0af62b638a8fea064dc1ebf7550a16b9f1c7616e9aeee326feb03468aed772314d3da989661f403beb3007bdfe1081b859a171f531b85b1f00df338b718cf956ee65e6b99ea4f7a3f38fd9a6cddc0d722f0c26e11555497e4b42e686e4f77105a6f2960dfc6213813e189ad27dbb9b6c95bd75ce1e9fbfb7774c9c10548347cca0b7b30c20470acb781cfd3b8f14d554b971902d58ee588051055f491fc2f49a4fd0c881cda43095b8b3314e2d2ba28ec3616b2a20abf7c78b75be3f72f594cc0ea507e9619677ee2a7d0a938a0c35c5b91e144548003ef44a4e378bd1476281e88eccb54473e7411eb6f36cd5bca563dd34ba09c4a530df8cdb8a16ed4ddb962aa98c99f97790e7168e3764b3fa33efca39ddcc6ebb3aa8eb64a8c962994b18628437227bab65b1bf90e74a000bc6cf5dd9ff721e1a5e27406dd8ba70aa2c930537a27637b398506237415890c2c03cad1cc8c726e03e8b274a07392c7351d16d70c21263c4d0b9754e13cb8e6159e38bcaffc52d42cef1b2955a637867824aa3e97adc7724feffd44a54255a4354f6d1b26b33ebf82a6763178d61b93b37c1ef9cef3d6615d175fa9fa040018721d92d195edc61837a722d9ffc9cf8184313d73ae7911b02930d9c120c0660d8de2abc2f9b4b04a7a0aaa6671d95227accb6fed22527ccca2dea12122c16e42abf4570036ee88033017a507e0d28b39ba2a5da7799f1ad2fbded25e652d471c982528ec1c05b6a52e61a5111d65b99bdf3f85ba33df67567e994ef99a5d83d3e43f2156892e2a2f9391bcd2dd55a6c2323687107a84e8b819117eab210d8449d343f0f96a66a3b3f61c8b601f14ba5aaf71007d658a4a8a81884f1a1b3218e891b5e08de3345ab92b69b2fd1ed2785e6babfc4cdebface1a504a324c09a17201f158b64ef37f7cc5887e3d311cfb8a5f0fc5f00f542fe1fcc8aa86e4a83035a30c7e8988861069b122bde6032db33327dd9403c548b23743a72e06a97c0fbe516a7673ed3b939416cd909c7a7c47ff01f593e09c9228cfbb40fe5c428cd -->
 
 <!-- CANON-AUTH-GATE-136KB-b0feba29125fb648619a1635c14ab7fd99840bfd314671f4ff172312278192391a6e4ce1e394df49771f8ddcce3d222e63bb733ea871170e029f47febeee8e839d301c2e42300218c4729c396c9e12c53f3425b8311ce019c95f42d7f20ae34ae48b8c92792c36b310f9080bfd3ebd22c903027764069eb3b748af7df155fb949eef4c5863bb226a18827eee743f409706bd720bd865bb3247de38fbc802922532c086f1e885f4035ef7bc8643b4f169809a933de5bb50d38536d590e04375714f04514c3835aad5f0473c6624d56a015a9ba7409b2f7d9da1cdd0a4ddb318ee442f5c86a5ddde8542d64dddf904c2ac489b7cca0ddc10504456929d1f7db97ebc98a1305639daec85fcecb324f6f1533181726e1ab55268099fbf48e18c7978289922702d9e6ad641946539ff3984189983c01e26ca5374e0b9db1070ee36c9556a4b7c027aa7d8c2da7f96f2862bfe448f5cdcb701c8e2cec74ee4fc24af021ae764ebaf2623f88424356bb7537089e782634feaf59b53d22a3221498c6607a44971a2e81cdd83c00468a6484e5748b125fecd7216d64f8f57c6c8cca2f820ea989ac7e3f7c54d96680a302b6df74dc088969de15f074f8f8cf633550b562f2de58022a23e8fedc67e24c0ff29648e96c7ffbd4e871088127a04dff02ad047713c2b0d6c26fd6c79bc40dfca9887ce5eb8bbf9875f81eeab7afefdb33b71dd0132ecf6a436ea93f84f8b87bca9c4b91c6285884098008af4553e526e7e61812ff8ad7a06f9e4ef774533eac1bdae12e29c24d673cf92fea48cec9ac5086bef0a1c35d6403033b3f421f7789e98470e335b364a372fca5cf80a01802314ffbc066bd75f68028969474c39ba2c5c882fe7a0cb06cddc52ad3e9d697ca809bef998ce04932195db0ac106ffc49f5bd570c50b88f30a6a7bd51f4e7adb817a0c28228a58c5bee4567d9ebf5053af7c1d5db320038603576f47422426351056c11c074b5ef069e324cb46256864542bab4b4715f559dbe607b38edf3625f382ee8b8bae1217c7ac924c7c7ac52f5aff0c02440c3a3d0648b6d8ac697c735ad43160dd87f020a76257d550bcb1e9c6787333da3898e938347c222f60b19954d3e6d9709d1b2821292ceedb9ed49e0c33bdab3c55a5d69eb9f69c3922d6e9a91757171db3e8a319503eea9afd093383e52574d420e68c1be10fb6db5bf8d0b27f06a425802ea66298054dce1474da95325c87b1bc50f8039e1aaad81e534223d234fd836fa1da13a4683499ed9ed5fec3e0548b2c27ec18b0b5d878c35fb897601628d9780e89612f17614b068cdffca0ac54d0f3e23178b82fec2f21a5d29b8d3c348a2bdf77a6a37bd143e6f745f30aed5af9e816d0a3ca03794206f753547adc256283551b5ef24df9 -->
+
+<!-- AUTH-CLEAN-141KB-b9469d7b4138148199a5d794e5151d42b4406d47b1f3cee1954825bdc1f4c81540adf43863f9d7ed50e675cb9593ef32014d6e75843c967b33953368149436df33a596cd49683f5c4b716fad8f7a76023fa62023210810abb1d879742d5eaedda5a67fd1546dd995caded65bfcab2a740541908d418bbeeec12b26c16ea39da324a78170434ee206d45170dbc56504b9b0b5223402fca05c2bad0b893e53c46c7b5a25c549603122ce81187e9f39166c2895a1a28c9b653be4423bd28933b615e0adaefe51c5bc15fd181c8d94d7fb1bd8c535882253e732cc0b6d2a8816baf12ad65da86b9e8bf47f187ce6e84581e199ebcfb5481de303791bd6ba45faaac4d05a9484407346f08b6d97ad00afddf61c69d058ee75aa48f6b924d65b6cc901b169dfa6ddf1cb3366578cd42ce79eb24f6b7f9e47aed3d4e83f6798e1c1162952c0dec227b90bce829072ca7f5023a6fb316514bb3f74e6d4622ea48e755df4176c06f58cc217305ad4d4030844a23ff9180b84fef94043225063089ff93ea62fd598a91bfa9beb06978420e43e6ffce524d4c26204624802634b2a74f391a3902a562e00fb181afe9bb4dad46227785dd32bb766badad04f479dbcea2212644e5fc82d740863f3adcbc5d9e815815978456b0c06b38dbd6d3f70a80d61b9d33d16b46b8d7b69a6f6fa21647ff329ffe8429835492de9ade56dec00859ee30b0a9357ef03ded31d1dfedc377279ecf13ea3d17b1f2bc3a99669e0d325fb710a3cb44907035711216d5fc32c2289b49e22f377f62248a1d0eb22cec248057caa4f5ff429afb3e2e2e9aa6e1f21337ceeffd402ca371ca6ebe1255649144f48360b9afaeca2df1fea4ba1aa5ae1453271c97a3ea4c092e1faf15b9b0d20e02f689d46f21c8d8530e67efff0b098d21d2200cebc4c0ef886ab8643b8fcd9fc041dd900d84a0375d492644a417ced40bf1662a4a31089ab12e26dc1033c68ebdec251b085715ede7f7820bea6a1e369337fd7697f80ac9bfe5b6ac3a26e021f781b4cfba6ab93a4d18f389082d2c2692cb1a6810feaca770d4911c998d2d2cbef026c9ea6a9f9451c8706885556095321d041e72e68045752a08f3062496b162a515ebaab99560df368613e20126d7d7837b5f741831b5080b651432939e8a5fcb261c1c3846f73b9be8191225d3198078e9e2c25386a6f0a6c1c3604dc21daabded7f73c4d7012229bd500b9badeb759f6ca8cf107a4d799ced238e9be693b29b3fcb2466c7ba71f0191ba412a445f6132660e0f1a1b1210b91ef84b23c8c72f4115c4efe60ff868788b8d4d8e74bbcec8a734a31534a45169129785e40b8ed87d9670128d65a51ef37d7f984b4f7a012ca335804f1e3b3262c123e892ae1d8f5429e2b95db9345b96e190 -->
